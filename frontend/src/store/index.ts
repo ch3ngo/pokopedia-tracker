@@ -46,34 +46,26 @@ export const useGuestStore = create<GuestProgressStore>()(
       habitats: {},
 
       updatePokemon: (id, update) =>
-        set((state) => ({
-          pokemon: {
-            ...state.pokemon,
-            [id]: {
-              pokemon_id: id,
-              is_seen: false,
-              is_caught: false,
-              zone: null,
-              notes: null,
-              ...state.pokemon[id],
-              ...update,
-            },
-          },
-        })),
+        set((state) => {
+          const base: PokemonProgress = state.pokemon[id] ?? {
+            pokemon_id: id,
+            is_seen: false,
+            is_caught: false,
+            zone: null,
+            notes: null,
+          };
+          return { pokemon: { ...state.pokemon, [id]: { ...base, ...update } } };
+        }),
 
       updateHabitat: (id, update) =>
-        set((state) => ({
-          habitats: {
-            ...state.habitats,
-            [id]: {
-              habitat_id: id,
-              is_built: false,
-              pokemon_attracted: [],
-              ...state.habitats[id],
-              ...update,
-            },
-          },
-        })),
+        set((state) => {
+          const base: HabitatProgress = state.habitats[id] ?? {
+            habitat_id: id,
+            is_built: false,
+            pokemon_attracted: [],
+          };
+          return { habitats: { ...state.habitats, [id]: { ...base, ...update } } };
+        }),
 
       importProgress: (data) => {
         const pokemon: Record<number, PokemonProgress> = {};
