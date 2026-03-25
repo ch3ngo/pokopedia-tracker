@@ -33,8 +33,8 @@
     "legendary": "Legendary",
     "mythical": "Mythical",
     "specialNpc": "Special NPC",
-    "guestMode": "Guest mode",
-    "noZone": "No zone assigned"
+    "noZone": "No zone assigned",
+    "importError": "Failed to import progress: invalid file"
   },
   "pokedex": {
     "title": "Pokédex",

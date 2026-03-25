@@ -1,0 +1,6 @@
+- Mejor que sea completamente offline. Nada de tokens ni gestión de sesiones porque no le veo ningún sentido, solamente una opción de exportar e importar para poder transferir el progreso entre máquinas diferentes. Indiferente si es un json, yaml o cualquier forma de transferir los datos de la aplicación
+- No hay imágenes ni de los pokemon ni de los habitats. Faltan también tanto pokemon de evento. Tampoco tiene sentido marcar la opción de visto cuando todos los vistos son registrados en la Pokédex.
+- En cada pokémon deberían aparecer las habitats en las que aparece y poder acceder desde ahí al detalle del habitat y viceversa (en las habitats los pokemon que aparecen y poder ir al pokemon desde ahí)
+- No me termina de gustar la interfaz. Además, no se ajusta adecuadamente al tamaño de la pantalla ya que no respeta los bordes
+- Los pokemon también deberían tener en su menú la habilidad que tienen (construir, demoler, quemar, humedecer, etc.)
+- Falta un menú para ver los pokémon que tiene el usuario en cada zona, que habilidades faltan en cada zona, etc.

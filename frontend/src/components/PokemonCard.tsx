@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Eye, Star, MapPin, Pencil, Check } from "lucide-react";
+import { Star, MapPin, Pencil, Check } from "lucide-react";
 import type { Pokemon, PokemonProgress } from "../types";
 import { ZONES, ZONE_LABELS } from "../types";
 import { PokemonSprite } from "./PokemonSprite";
@@ -19,7 +19,6 @@ export function PokemonCard({ pokemon, progress, onUpdate, lang }: Props) {
   const [notes, setNotes] = useState(progress?.notes ?? "");
 
   const isCaught = progress?.is_caught ?? false;
-  const isSeen = progress?.is_seen ?? false;
   const name = lang === "es" ? pokemon.name_es : pokemon.name_en;
 
   const badgeLabel = pokemon.is_mythical
@@ -36,26 +35,19 @@ export function PokemonCard({ pokemon, progress, onUpdate, lang }: Props) {
         className={`relative rounded-2xl border transition-all duration-200 cursor-pointer group
           ${isCaught
             ? "border-brand-500 bg-white dark:bg-gray-800 shadow-md shadow-brand-500/20"
-            : isSeen
-              ? "border-yellow-400 bg-white dark:bg-gray-800"
-              : "border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 opacity-70 hover:opacity-100"
+            : "border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 opacity-70 hover:opacity-100"
           }
         `}
         onClick={() => setShowDetail(true)}
       >
         {/* Status indicator */}
-        <div className="absolute top-2 right-2 flex gap-1">
-          {isSeen && !isCaught && (
-            <span className="w-5 h-5 flex items-center justify-center rounded-full bg-yellow-100 dark:bg-yellow-900">
-              <Eye className="w-3 h-3 text-yellow-500" />
-            </span>
-          )}
-          {isCaught && (
+        {isCaught && (
+          <div className="absolute top-2 right-2">
             <span className="w-5 h-5 flex items-center justify-center rounded-full bg-brand-100 dark:bg-brand-900">
               <Check className="w-3 h-3 text-brand-500" />
             </span>
-          )}
-        </div>
+          </div>
+        )}
 
         {/* Special badge */}
         {badgeLabel && (
@@ -69,10 +61,9 @@ export function PokemonCard({ pokemon, progress, onUpdate, lang }: Props) {
             spriteKey={pokemon.sprite_key}
             name={name}
             size="md"
-            grayscale={!isSeen && !isCaught}
+            grayscale={!isCaught}
           />
 
-          {/* Pokédex number */}
           <span className="text-[9px] font-pixel text-gray-400 dark:text-gray-500">
             #{String(pokemon.id).padStart(3, "0")}
           </span>
@@ -87,7 +78,6 @@ export function PokemonCard({ pokemon, progress, onUpdate, lang }: Props) {
             ))}
           </div>
 
-          {/* Zone if assigned */}
           {progress?.zone && (
             <div className="flex items-center gap-1 text-[10px] text-gray-500 dark:text-gray-400">
               <MapPin className="w-3 h-3" />
@@ -99,14 +89,7 @@ export function PokemonCard({ pokemon, progress, onUpdate, lang }: Props) {
         {/* Quick actions on hover */}
         <div className="absolute inset-0 rounded-2xl bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
           <button
-            onClick={(e) => { e.stopPropagation(); onUpdate({ is_seen: !isSeen }); }}
-            className={`p-2 rounded-full ${isSeen ? "bg-yellow-400 text-yellow-900" : "bg-white/20 text-white"} hover:scale-110 transition-transform`}
-            title={t("pokedex.markSeen")}
-          >
-            <Eye className="w-4 h-4" />
-          </button>
-          <button
-            onClick={(e) => { e.stopPropagation(); onUpdate({ is_caught: !isCaught, is_seen: true }); }}
+            onClick={(e) => { e.stopPropagation(); onUpdate({ is_caught: !isCaught }); }}
             className={`p-2 rounded-full ${isCaught ? "bg-brand-500 text-white" : "bg-white/20 text-white"} hover:scale-110 transition-transform`}
             title={t("pokedex.markCaught")}
           >
@@ -156,17 +139,11 @@ export function PokemonCard({ pokemon, progress, onUpdate, lang }: Props) {
               </div>
             )}
 
-            {/* Status toggles */}
-            <div className="flex gap-2 mb-4">
+            {/* Caught toggle */}
+            <div className="mb-4">
               <button
-                onClick={() => onUpdate({ is_seen: !isSeen })}
-                className={`flex-1 py-2 rounded-xl font-semibold text-sm transition-colors ${isSeen ? "bg-yellow-400 text-yellow-900" : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300"}`}
-              >
-                <Eye className="w-4 h-4 inline mr-1" />{t("common.seen")}
-              </button>
-              <button
-                onClick={() => onUpdate({ is_caught: !isCaught, is_seen: true })}
-                className={`flex-1 py-2 rounded-xl font-semibold text-sm transition-colors ${isCaught ? "bg-brand-500 text-white" : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300"}`}
+                onClick={() => onUpdate({ is_caught: !isCaught })}
+                className={`w-full py-2 rounded-xl font-semibold text-sm transition-colors ${isCaught ? "bg-brand-500 text-white" : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300"}`}
               >
                 <Star className="w-4 h-4 inline mr-1" />{t("common.caught")}
               </button>

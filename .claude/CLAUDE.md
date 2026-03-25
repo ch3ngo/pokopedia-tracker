@@ -20,22 +20,22 @@ docker-compose.yml
 
 ### Backend
 - `app/main.py` — FastAPI app, lifespan seeds DB on first start
-- `app/models/` — SQLAlchemy models: `Pokemon`, `Habitat`, `User`, `PokemonProgress`, `HabitatProgress`
-- `app/routers/` — `/api/auth`, `/api/pokemon`, `/api/habitats`, `/api/progress`
+- `app/models/` — SQLAlchemy models: `Pokemon`, `Habitat` (User/Progress models unused, left in place)
+- `app/routers/` — `/api/pokemon`, `/api/habitats` (auth and progress routers removed)
 - `app/seed/pokemon_data.py` — All 300 Pokopia Pokédex entries + 7 special NPC variants (IDs 301-307)
 - `app/seed/habitats_data.py` — 100 documented habitats (Pokopia has 209 total; remainder pending game documentation)
 - `app/seed/seeder.py` — Seeds DB on startup if empty
-- Auth: JWT with username/password (7-day tokens)
+- No auth. Backend is read-only static data API.
 
 ### Frontend
 - `src/pages/Pokedex.tsx` — Main Pokédex grid with search, type filter, status filter
 - `src/pages/Habitatdex.tsx` — Habitat grid with category/status filters, expandable Pokémon list
-- `src/pages/Login.tsx`, `Register.tsx`, `Profile.tsx`
 - `src/components/PokemonCard.tsx` — Card with hover quick actions + detail modal
 - `src/components/HabitatCard.tsx` — Card with progress bar and expandable Pokémon grid
 - `src/components/PokemonSprite.tsx` — Animated WebM sprite via Wikidex `Especial:FilePath`
-- `src/store/index.ts` — Zustand: `useAuthStore`, `useGuestStore`, `useUIStore`
-- `src/services/api.ts` — Axios wrapper for all API calls + `getSpriteUrl()`
+- `src/components/Navbar.tsx` — Nav with Download/Upload buttons for JSON export/import
+- `src/store/index.ts` — Zustand: `useProgressStore` (localStorage persist), `useUIStore`
+- `src/services/api.ts` — Axios wrapper for `getAllPokemon`, `getAllHabitats`, `getSpriteUrl()`
 - Sprite URL pattern: `https://www.wikidex.net/wiki/Especial:FilePath/{spriteKey}_EP.webm`
 
 ### Styling
@@ -53,22 +53,19 @@ docker-compose.yml
 - Habitatdex grid with category/status filters
 - Dark/light mode toggle
 - EN/ES language toggle
-- Guest mode progress saved in localStorage
-- Export progress as JSON (guest mode)
-- Auth: register/login/logout/JWT
-- Progress sync to server for registered users
+- Progress stored in localStorage (no auth, no accounts)
+- Export/Import progress as JSON via Navbar buttons
+- Specialties shown in Pokémon detail modal
 
 ### Known issues / TODO
 
-1. **Remove auth entirely — go fully offline**
-   The app should have zero auth, zero tokens, zero user accounts. Only one user per instance. Progress stored locally in the browser (or a server-side file). Export/import JSON to transfer between machines. Simplify drastically.
+1. ~~**Remove auth entirely — go fully offline**~~ DONE (2026-03-25)
 
 2. **Sprites not loading**
    Wikidex WebM URLs require a browser that supports WebM and may have CORS issues. Sprites show the fallback `?` placeholder. Need to investigate: try direct CDN URLs, or proxy through backend, or use PokéAPI sprites as fallback.
    Also: **event Pokémon are missing** (not yet added to seed data).
 
-3. **"Seen" status makes no sense for Pokopia**
-   In Pokopia, every Pokémon registered in the Pokédex is "caught". There is no "seen but not caught" mechanic. Remove the seen/unseen distinction entirely — only caught/uncaught.
+3. ~~**"Seen" status makes no sense for Pokopia**~~ DONE (2026-03-25) — only caught/uncaught now.
 
 4. **Cross-navigation Pokémon ↔ Habitat**
    In the Pokémon detail modal, show which habitats it can spawn in (with a link to the habitat).
@@ -79,8 +76,7 @@ docker-compose.yml
    - General interface feel needs improvement
    - Cards may overflow or clip on mobile
 
-6. **Specialties not shown in Pokémon card modal**
-   The Pokémon detail modal should clearly display its specialties (Build, Burn, Fly, etc.) — currently present in data but not prominent enough in UI.
+6. ~~**Specialties not shown in Pokémon card modal**~~ DONE — specialties displayed in detail modal as teal badges.
 
 7. **Zone dashboard missing**
    Need a new view/page: show all Pokémon grouped by zone, and for each zone show which specialties are present and which are missing. Useful for planning habitat construction.
@@ -113,6 +109,6 @@ docker compose up --build
 
 - Backend uses SQLAlchemy async with asyncpg. All DB operations must be `await`ed.
 - Habitat `pokemon_ids` is `ARRAY(Integer)` — was `ARRAY(String)` and caused a seeder crash (fixed 2026-03-25).
-- Guest store uses Zustand `persist` middleware writing to `localStorage` key `pokopedia-guest-progress`.
+- Progress store uses Zustand `persist` middleware writing to `localStorage` key `pokopedia-progress`.
 - `noUnusedLocals` and `noUnusedParameters` are set to `false` in tsconfig to avoid noise during development.
 - The `// eslint-disable-next-line react-hooks/exhaustive-deps` comments in Pokedex/Habitatdex pages suppress warnings about the guest store not being a proper dependency — acceptable tradeoff for now.

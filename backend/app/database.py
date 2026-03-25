@@ -17,6 +17,6 @@ async def get_db():
 
 
 async def init_db():
-    from app.models import user, pokemon, habitat, progress  # noqa: F401
+    from app.models import pokemon, habitat  # noqa: F401
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)

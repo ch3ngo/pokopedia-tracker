@@ -1,10 +1,10 @@
 import { useState, useMemo } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { Search } from "lucide-react";
 import i18n from "../i18n";
-import { getAllHabitats, getAllPokemon, getHabitatProgress, updateHabitatProgress } from "../services/api";
-import { useAuthStore, useGuestStore } from "../store";
+import { getAllHabitats, getAllPokemon } from "../services/api";
+import { useProgressStore } from "../store";
 import { HabitatCard } from "../components/HabitatCard";
 import { ProgressBar } from "../components/ProgressBar";
 import type { HabitatProgress } from "../types";
@@ -16,9 +16,7 @@ const CATEGORIES = ["grass","flower","water","rocky","ghost","electric","fire","
 export function Habitatdex() {
   const { t } = useTranslation();
   const lang = i18n.language as "en" | "es";
-  const { user } = useAuthStore();
-  const guestStore = useGuestStore();
-  const qc = useQueryClient();
+  const { habitats: progressMap, updateHabitat } = useProgressStore();
 
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<Filter>("all");
@@ -27,27 +25,7 @@ export function Habitatdex() {
   const { data: habitats = [] } = useQuery({ queryKey: ["habitats"], queryFn: getAllHabitats });
   const { data: allPokemon = [] } = useQuery({ queryKey: ["pokemon"], queryFn: getAllPokemon });
 
-  const { data: serverProgress = [] } = useQuery({
-    queryKey: ["habitat-progress"],
-    queryFn: getHabitatProgress,
-    enabled: !!user,
-  });
-
-  const mutation = useMutation({
-    mutationFn: ({ id, update }: { id: number; update: Partial<HabitatProgress> }) =>
-      updateHabitatProgress(id, update),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["habitat-progress"] }),
-  });
-
-  const getProgress = (id: number): HabitatProgress | undefined => {
-    if (user) return serverProgress.find((p) => p.habitat_id === id);
-    return guestStore.habitats[id];
-  };
-
-  const handleUpdate = (id: number, update: Partial<HabitatProgress>) => {
-    if (user) mutation.mutate({ id, update });
-    else guestStore.updateHabitat(id, update);
-  };
+  const getProgress = (id: number): HabitatProgress | undefined => progressMap[id];
 
   const isComplete = (id: number) => {
     const h = habitats.find((hab) => hab.id === id);
@@ -70,7 +48,7 @@ export function Habitatdex() {
       }
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [habitats, search, filter, category, lang, serverProgress, guestStore.habitats]);
+  }, [habitats, search, filter, category, lang, progressMap]);
 
   const builtCount = habitats.filter((h) => getProgress(h.id)?.is_built).length;
   const completeCount = habitats.filter((h) => isComplete(h.id)).length;
@@ -154,7 +132,7 @@ export function Habitatdex() {
             habitat={h}
             progress={getProgress(h.id)}
             allPokemon={allPokemon}
-            onUpdate={(update) => handleUpdate(h.id, update)}
+            onUpdate={(update) => updateHabitat(h.id, update)}
             lang={lang}
           />
         ))}

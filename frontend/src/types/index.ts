@@ -23,7 +23,6 @@ export interface Habitat {
 
 export interface PokemonProgress {
   pokemon_id: number;
-  is_seen: boolean;
   is_caught: boolean;
   zone: string | null;
   notes: string | null;
@@ -38,11 +37,6 @@ export interface HabitatProgress {
 export interface FullProgress {
   pokemon: PokemonProgress[];
   habitats: HabitatProgress[];
-}
-
-export interface User {
-  id: number;
-  username: string;
 }
 
 export type Zone =

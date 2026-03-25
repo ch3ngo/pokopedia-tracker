@@ -1,0 +1,15 @@
+{
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "claude --dangerously-skip-permissions -p 'Read the current state of the pokopedia-tracker project at /mnt/c/tools/ai-vault/vault/projects/pokopedia-tracker. Check recent git log, look at key source files, and update .claude/CLAUDE.md to reflect: what is currently working, what was recently fixed, and what is still pending (from the known issues list). Keep the same CLAUDE.md structure.' 2>/dev/null || true",
+            "async": true
+          }
+        ]
+      }
+    ]
+  }
+}

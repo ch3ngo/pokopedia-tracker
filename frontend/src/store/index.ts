@@ -1,35 +1,9 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import type { PokemonProgress, HabitatProgress, User } from "../types";
+import type { PokemonProgress, HabitatProgress } from "../types";
 
-// ─── Auth store ───────────────────────────────────────────────────────────────
-interface AuthStore {
-  token: string | null;
-  user: User | null;
-  setAuth: (token: string, user: User) => void;
-  clearAuth: () => void;
-}
-
-export const useAuthStore = create<AuthStore>()(
-  persist(
-    (set) => ({
-      token: null,
-      user: null,
-      setAuth: (token, user) => {
-        localStorage.setItem("token", token);
-        set({ token, user });
-      },
-      clearAuth: () => {
-        localStorage.removeItem("token");
-        set({ token: null, user: null });
-      },
-    }),
-    { name: "pokopedia-auth" }
-  )
-);
-
-// ─── Guest progress store (localStorage) ─────────────────────────────────────
-interface GuestProgressStore {
+// ─── Progress store (localStorage) ───────────────────────────────────────────
+interface ProgressStore {
   pokemon: Record<number, PokemonProgress>;
   habitats: Record<number, HabitatProgress>;
   updatePokemon: (id: number, update: Partial<PokemonProgress>) => void;
@@ -39,7 +13,7 @@ interface GuestProgressStore {
   clear: () => void;
 }
 
-export const useGuestStore = create<GuestProgressStore>()(
+export const useProgressStore = create<ProgressStore>()(
   persist(
     (set, get) => ({
       pokemon: {},
@@ -49,7 +23,6 @@ export const useGuestStore = create<GuestProgressStore>()(
         set((state) => {
           const base: PokemonProgress = state.pokemon[id] ?? {
             pokemon_id: id,
-            is_seen: false,
             is_caught: false,
             zone: null,
             notes: null,
@@ -82,7 +55,7 @@ export const useGuestStore = create<GuestProgressStore>()(
 
       clear: () => set({ pokemon: {}, habitats: {} }),
     }),
-    { name: "pokopedia-guest-progress" }
+    { name: "pokopedia-progress" }
   )
 );
 

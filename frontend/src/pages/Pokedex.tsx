@@ -1,10 +1,10 @@
 import { useState, useMemo } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { Search } from "lucide-react";
 import i18n from "../i18n";
-import { getAllPokemon, getPokemonProgress, updatePokemonProgress } from "../services/api";
-import { useAuthStore, useGuestStore } from "../store";
+import { getAllPokemon } from "../services/api";
+import { useProgressStore } from "../store";
 import { PokemonCard } from "../components/PokemonCard";
 import { ProgressBar } from "../components/ProgressBar";
 import type { PokemonProgress } from "../types";
@@ -14,9 +14,7 @@ type Filter = "all" | "caught" | "uncaught" | "legendary" | "mythical" | "npc";
 export function Pokedex() {
   const { t } = useTranslation();
   const lang = i18n.language as "en" | "es";
-  const { user } = useAuthStore();
-  const guestStore = useGuestStore();
-  const qc = useQueryClient();
+  const { pokemon: progressMap, updatePokemon } = useProgressStore();
 
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<Filter>("all");
@@ -27,30 +25,7 @@ export function Pokedex() {
     queryFn: getAllPokemon,
   });
 
-  const { data: serverProgress = [] } = useQuery({
-    queryKey: ["pokemon-progress"],
-    queryFn: getPokemonProgress,
-    enabled: !!user,
-  });
-
-  const mutation = useMutation({
-    mutationFn: ({ id, update }: { id: number; update: Partial<PokemonProgress> }) =>
-      updatePokemonProgress(id, update),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["pokemon-progress"] }),
-  });
-
-  const getProgress = (id: number): PokemonProgress | undefined => {
-    if (user) return serverProgress.find((p) => p.pokemon_id === id);
-    return guestStore.pokemon[id];
-  };
-
-  const handleUpdate = (id: number, update: Partial<PokemonProgress>) => {
-    if (user) {
-      mutation.mutate({ id, update });
-    } else {
-      guestStore.updatePokemon(id, update);
-    }
-  };
+  const getProgress = (id: number): PokemonProgress | undefined => progressMap[id];
 
   const allTypes = useMemo(() => {
     const types = new Set<string>();
@@ -76,11 +51,10 @@ export function Pokedex() {
       }
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [allPokemon, search, filter, typeFilter, lang, serverProgress, guestStore.pokemon]);
+  }, [allPokemon, search, filter, typeFilter, lang, progressMap]);
 
   const totalPokemon = allPokemon.filter((p) => !p.is_special_npc).length;
   const caughtCount = allPokemon.filter((p) => !p.is_special_npc && getProgress(p.id)?.is_caught).length;
-  const seenCount = allPokemon.filter((p) => !p.is_special_npc && getProgress(p.id)?.is_seen).length;
 
   const filters: { key: Filter; label: string }[] = [
     { key: "all", label: t("pokedex.filterAll") },
@@ -99,10 +73,9 @@ export function Pokedex() {
         <p className="text-gray-500 dark:text-gray-400 text-sm">{t("pokedex.subtitle")}</p>
       </div>
 
-      {/* Progress bars */}
-      <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 mb-6 space-y-3 border border-gray-200 dark:border-gray-700">
+      {/* Progress bar */}
+      <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 mb-6 border border-gray-200 dark:border-gray-700">
         <ProgressBar value={caughtCount} max={totalPokemon} label={t("pokedex.caught")} color="bg-brand-500" />
-        <ProgressBar value={seenCount} max={totalPokemon} label={t("pokedex.seen")} color="bg-yellow-400" />
       </div>
 
       {/* Search + filters */}
@@ -166,7 +139,7 @@ export function Pokedex() {
             key={p.id}
             pokemon={p}
             progress={getProgress(p.id)}
-            onUpdate={(update) => handleUpdate(p.id, update)}
+            onUpdate={(update) => updatePokemon(p.id, update)}
             lang={lang}
           />
         ))}

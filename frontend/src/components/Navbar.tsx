@@ -1,15 +1,17 @@
+import { useRef } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { Sun, Moon, Globe, LogOut, User } from "lucide-react";
+import { Sun, Moon, Globe, Download, Upload } from "lucide-react";
 import i18n from "../i18n";
-import { useAuthStore, useUIStore } from "../store";
+import { useProgressStore, useUIStore } from "../store";
 
 export function Navbar() {
   const { t } = useTranslation();
   const location = useLocation();
-  const { user, clearAuth } = useAuthStore();
   const { theme, toggleTheme } = useUIStore();
+  const { exportProgress, importProgress } = useProgressStore();
   const lang = i18n.language as "en" | "es";
+  const importRef = useRef<HTMLInputElement>(null);
 
   const toggleLang = () => {
     const next = lang === "en" ? "es" : "en";
@@ -21,6 +23,33 @@ export function Navbar() {
     location.pathname === path
       ? "text-brand-500 dark:text-brand-400"
       : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white";
+
+  const handleExport = () => {
+    const data = exportProgress();
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `pokopedia-progress-${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleImport = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      try {
+        const data = JSON.parse(ev.target?.result as string);
+        importProgress(data);
+      } catch {
+        alert(t("common.importError"));
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = "";
+  };
 
   return (
     <nav className="sticky top-0 z-40 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-800">
@@ -49,6 +78,21 @@ export function Navbar() {
         {/* Right controls */}
         <div className="flex items-center gap-1">
           <button
+            onClick={handleExport}
+            className="p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+            title={t("common.export")}
+          >
+            <Download className="w-4 h-4" />
+          </button>
+          <button
+            onClick={() => importRef.current?.click()}
+            className="p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+            title={t("common.import")}
+          >
+            <Upload className="w-4 h-4" />
+          </button>
+          <input ref={importRef} type="file" accept=".json" className="hidden" onChange={handleImport} />
+          <button
             onClick={toggleLang}
             className="p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
             title={lang === "en" ? "Español" : "English"}
@@ -61,32 +105,6 @@ export function Navbar() {
           >
             {theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
           </button>
-
-          {user ? (
-            <div className="flex items-center gap-1 ml-1">
-              <Link
-                to="/profile"
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-semibold transition-colors ${isActive("/profile")}`}
-              >
-                <User className="w-3.5 h-3.5" />
-                {user.username}
-              </Link>
-              <button
-                onClick={clearAuth}
-                className="p-2 rounded-lg text-gray-400 hover:text-red-500 transition-colors"
-                title={t("nav.logout")}
-              >
-                <LogOut className="w-4 h-4" />
-              </button>
-            </div>
-          ) : (
-            <Link
-              to="/login"
-              className="ml-1 px-3 py-1.5 rounded-lg bg-brand-500 text-white text-sm font-semibold hover:bg-brand-600 transition-colors"
-            >
-              {t("nav.login")}
-            </Link>
-          )}
         </div>
       </div>
     </nav>

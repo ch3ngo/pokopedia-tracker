@@ -33,8 +33,8 @@
     "legendary": "Legendario",
     "mythical": "Mítico",
     "specialNpc": "NPC Especial",
-    "guestMode": "Modo invitado",
-    "noZone": "Sin zona asignada"
+    "noZone": "Sin zona asignada",
+    "importError": "Error al importar: archivo inválido"
   },
   "pokedex": {
     "title": "Pokédex",

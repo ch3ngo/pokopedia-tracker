@@ -4,7 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.database import init_db
-from app.routers import auth, pokemon, habitats, progress
+from app.routers import pokemon, habitats
 from app.seed.seeder import seed_if_empty
 
 
@@ -25,10 +25,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(auth.router)
 app.include_router(pokemon.router)
 app.include_router(habitats.router)
-app.include_router(progress.router)
 
 
 @app.get("/api/health")
