@@ -59,6 +59,45 @@ export const useProgressStore = create<ProgressStore>()(
   )
 );
 
+// ─── Todo store ───────────────────────────────────────────────────────────────
+export interface Todo {
+  id: string;
+  text: string;
+  done: boolean;
+}
+
+interface TodoStore {
+  todos: Todo[];
+  addTodo: (text: string) => void;
+  toggleTodo: (id: string) => void;
+  deleteTodo: (id: string) => void;
+  clearCompleted: () => void;
+}
+
+export const useTodoStore = create<TodoStore>()(
+  persist(
+    (set) => ({
+      todos: [],
+      addTodo: (text) => {
+        const trimmed = text.trim().slice(0, 200);
+        if (!trimmed) return;
+        set((state) => ({
+          todos: [...state.todos, { id: Date.now().toString(), text: trimmed, done: false }],
+        }));
+      },
+      toggleTodo: (id) =>
+        set((state) => ({
+          todos: state.todos.map((t) => (t.id === id ? { ...t, done: !t.done } : t)),
+        })),
+      deleteTodo: (id) =>
+        set((state) => ({ todos: state.todos.filter((t) => t.id !== id) })),
+      clearCompleted: () =>
+        set((state) => ({ todos: state.todos.filter((t) => !t.done) })),
+    }),
+    { name: "pokopedia-todos" }
+  )
+);
+
 // ─── Theme / UI store ─────────────────────────────────────────────────────────
 interface UIStore {
   theme: "light" | "dark";

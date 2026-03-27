@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { getSpriteUrl } from "../services/api";
 
 interface Props {
   spriteKey: string;
@@ -14,11 +13,25 @@ const sizes = {
   lg: "w-32 h-32",
 };
 
-export function PokemonSprite({ spriteKey, name, size = "md", grayscale = false }: Props) {
-  const [errored, setErrored] = useState(false);
-  const url = getSpriteUrl(spriteKey);
+function normalizeSpriteName(key: string): string {
+  return key
+    .toLowerCase()
+    .replace(/\s+/g, "-")
+    .replace(/\./g, "")
+    .replace(/'/g, "")
+    .replace(/♀/g, "-f")
+    .replace(/♂/g, "-m")
+    .replace(/:/g, "")
+    .replace(/--+/g, "-");
+}
 
-  if (errored) {
+export function PokemonSprite({ spriteKey, name, size = "md", grayscale = false }: Props) {
+  const [stage, setStage] = useState<"local" | "remote" | "error">("local");
+  const normalized = normalizeSpriteName(spriteKey);
+  const localUrl = `/imgs/pokedex/${normalized}.png`;
+  const remoteUrl = `https://img.pokemondb.net/sprites/home/normal/${normalized}.png`;
+
+  if (stage === "error") {
     return (
       <div
         className={`${sizes[size]} flex items-center justify-center rounded-full bg-gray-200 dark:bg-gray-700 text-gray-400 text-xs font-pixel`}
@@ -29,16 +42,11 @@ export function PokemonSprite({ spriteKey, name, size = "md", grayscale = false 
   }
 
   return (
-    <video
+    <img
+      src={stage === "local" ? localUrl : remoteUrl}
+      alt={name}
       className={`${sizes[size]} object-contain ${grayscale ? "grayscale opacity-40" : ""} transition-all duration-300`}
-      autoPlay
-      loop
-      muted
-      playsInline
-      title={name}
-      onError={() => setErrored(true)}
-    >
-      <source src={url} type="video/webm" />
-    </video>
+      onError={() => setStage(stage === "local" ? "remote" : "error")}
+    />
   );
 }

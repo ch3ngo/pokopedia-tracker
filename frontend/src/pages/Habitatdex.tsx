@@ -1,12 +1,13 @@
 import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
+import { useSearchParams } from "react-router-dom";
 import { Search } from "lucide-react";
 import i18n from "../i18n";
 import { getAllHabitats, getAllPokemon } from "../services/api";
 import { useProgressStore } from "../store";
 import { HabitatCard } from "../components/HabitatCard";
-import { ProgressBar } from "../components/ProgressBar";
+import { StatsRing } from "../components/StatsRing";
 import type { HabitatProgress } from "../types";
 
 type Filter = "all" | "built" | "notBuilt" | "complete";
@@ -16,9 +17,10 @@ const CATEGORIES = ["grass","flower","water","rocky","ghost","electric","fire","
 export function Habitatdex() {
   const { t } = useTranslation();
   const lang = i18n.language as "en" | "es";
-  const { habitats: progressMap, updateHabitat } = useProgressStore();
+  const { habitats: progressMap, pokemon: pokemonProgress, updateHabitat } = useProgressStore();
+  const [searchParams] = useSearchParams();
 
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState(searchParams.get("search") ?? "");
   const [filter, setFilter] = useState<Filter>("all");
   const [category, setCategory] = useState("all");
 
@@ -30,8 +32,12 @@ export function Habitatdex() {
   const isComplete = (id: number) => {
     const h = habitats.find((hab) => hab.id === id);
     const p = getProgress(id);
-    if (!h || !p) return false;
-    return h.pokemon_ids.length > 0 && h.pokemon_ids.every((pid) => p.pokemon_attracted.includes(pid));
+    if (!h || h.pokemon_ids.length === 0) return false;
+    return h.pokemon_ids.every(
+      (pid) =>
+        (p?.pokemon_attracted ?? []).includes(pid) ||
+        (pokemonProgress[pid]?.is_caught ?? false)
+    );
   };
 
   const filtered = useMemo(() => {
@@ -48,7 +54,7 @@ export function Habitatdex() {
       }
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [habitats, search, filter, category, lang, progressMap]);
+  }, [habitats, search, filter, category, lang, progressMap, pokemonProgress]);
 
   const builtCount = habitats.filter((h) => getProgress(h.id)?.is_built).length;
   const completeCount = habitats.filter((h) => isComplete(h.id)).length;
@@ -61,16 +67,39 @@ export function Habitatdex() {
   ];
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-6">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
       <div className="mb-6">
         <h1 className="font-pixel text-lg text-gray-900 dark:text-white mb-1">{t("habitatdex.title")}</h1>
         <p className="text-gray-500 dark:text-gray-400 text-sm">{t("habitatdex.subtitle")}</p>
       </div>
 
-      {/* Progress */}
-      <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 mb-6 space-y-3 border border-gray-200 dark:border-gray-700">
-        <ProgressBar value={builtCount} max={habitats.length} label={t("habitatdex.built")} color="bg-brand-500" />
-        <ProgressBar value={completeCount} max={habitats.length} label={t("habitatdex.complete")} color="bg-accent-teal" />
+      {/* Stats panel */}
+      <div className="bg-white dark:bg-gray-800 rounded-2xl p-5 mb-6 border border-gray-200 dark:border-gray-700">
+        <div className="flex items-center gap-6">
+          <StatsRing value={builtCount} max={habitats.length} />
+          <div className="flex-1 grid grid-cols-2 md:grid-cols-3 gap-4">
+            <div>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mb-0.5">{t("habitatdex.built")}</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white leading-none">
+                {builtCount}
+                <span className="text-sm font-normal text-gray-400 ml-1">/ {habitats.length}</span>
+              </p>
+            </div>
+            <div>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mb-0.5">{t("habitatdex.complete")}</p>
+              <p className="text-2xl font-bold text-accent-teal leading-none">
+                {completeCount}
+                <span className="text-sm font-normal text-gray-400 ml-1">/ {habitats.length}</span>
+              </p>
+            </div>
+            <div>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mb-0.5">{t("habitatdex.total")}</p>
+              <p className="text-2xl font-bold text-gray-500 dark:text-gray-400 leading-none">
+                {habitats.length}
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Search + filters */}
@@ -125,18 +154,25 @@ export function Habitatdex() {
         {filtered.length} / {habitats.length}
       </p>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 animate-fade-in">
-        {filtered.map((h) => (
-          <HabitatCard
-            key={h.id}
-            habitat={h}
-            progress={getProgress(h.id)}
-            allPokemon={allPokemon}
-            onUpdate={(update) => updateHabitat(h.id, update)}
-            lang={lang}
-          />
-        ))}
-      </div>
+      {filtered.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-20 text-gray-400 dark:text-gray-500">
+          <span className="text-4xl mb-3">🔍</span>
+          <p className="text-sm font-semibold">{t("common.noResults")}</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 animate-fade-in">
+          {filtered.map((h) => (
+            <HabitatCard
+              key={h.id}
+              habitat={h}
+              progress={getProgress(h.id)}
+              allPokemon={allPokemon}
+              onUpdate={(update) => updateHabitat(h.id, update)}
+              lang={lang}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 }

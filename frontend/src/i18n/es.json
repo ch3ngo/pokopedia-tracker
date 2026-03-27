@@ -1,19 +1,35 @@
 {
+  "types": {
+    "Normal": "Normal",
+    "Fire": "Fuego",
+    "Water": "Agua",
+    "Electric": "Eléctrico",
+    "Grass": "Planta",
+    "Ice": "Hielo",
+    "Fighting": "Lucha",
+    "Poison": "Veneno",
+    "Ground": "Tierra",
+    "Flying": "Volador",
+    "Psychic": "Psíquico",
+    "Bug": "Bicho",
+    "Rock": "Roca",
+    "Ghost": "Fantasma",
+    "Dragon": "Dragón",
+    "Dark": "Siniestro",
+    "Steel": "Acero",
+    "Fairy": "Hada"
+  },
   "nav": {
     "pokedex": "Pokédex",
     "habitatdex": "Habitatdex",
-    "profile": "Perfil",
-    "login": "Iniciar sesión",
-    "register": "Registrarse",
-    "logout": "Cerrar sesión"
+    "zones": "Zonas",
+    "todo": "Lista"
   },
   "common": {
     "search": "Buscar...",
     "filter": "Filtrar",
     "all": "Todos",
     "caught": "Capturado",
-    "seen": "Visto",
-    "unseen": "No visto",
     "built": "Construido",
     "notBuilt": "No construido",
     "complete": "Completo",
@@ -34,25 +50,26 @@
     "mythical": "Mítico",
     "specialNpc": "NPC Especial",
     "noZone": "Sin zona asignada",
-    "importError": "Error al importar: archivo inválido"
+    "importError": "Error al importar: archivo inválido",
+    "habitats": "Hábitats",
+    "viewInPokedex": "Ver en Pokédex",
+    "noResults": "No se han encontrado resultados"
   },
   "pokedex": {
     "title": "Pokédex",
     "subtitle": "Registra todos los Pokémon de Pokopia",
     "caught": "Capturados",
-    "seen": "Vistos",
     "total": "Total",
     "filterAll": "Todos",
     "filterCaught": "Capturados",
     "filterUncaught": "No capturados",
-    "filterLegendary": "Legendarios",
-    "filterMythical": "Míticos",
+    "filterSpecials": "Especiales",
     "filterNpc": "NPC Especiales",
-    "markSeen": "Marcar como visto",
     "markCaught": "Marcar como capturado",
     "assignZone": "Asignar zona",
-    "addNotes": "Añadir notas",
-    "stats": "Progreso de la Pokédex"
+    "stats": "Progreso de la Pokédex",
+    "statSpecials": "Especiales",
+    "statZoned": "Con zona"
   },
   "habitatdex": {
     "title": "Habitatdex",
@@ -86,44 +103,65 @@
     }
   },
   "zones": {
-    "palette_town": "Pueblo Paleta",
-    "withered_wastelands": "Páramos Marchitos",
-    "bleak_beach": "Playa Sombría",
+    "palette_town": "Pradera Paleta",
+    "withered_wastelands": "Estepa Estéril",
+    "bleak_beach": "Bahía Borrasca",
     "rocky_ridges": "Riscos Rocosos",
-    "sparkling_skylands": "Tierras Celestes",
+    "sparkling_skylands": "Islas Aisladas",
     "cloud_island": "Isla Nube"
   },
-  "auth": {
-    "username": "Nombre de usuario",
-    "password": "Contraseña",
-    "loginTitle": "Bienvenido de nuevo",
-    "loginSubtitle": "Inicia sesión para sincronizar tu progreso",
-    "registerTitle": "Crear cuenta",
-    "registerSubtitle": "Guarda tu progreso en todos tus dispositivos",
-    "loginBtn": "Iniciar sesión",
-    "registerBtn": "Crear cuenta",
-    "noAccount": "¿No tienes cuenta?",
-    "haveAccount": "¿Ya tienes cuenta?",
-    "orGuest": "o continuar como invitado",
-    "errors": {
-      "usernameTaken": "Nombre de usuario ya en uso",
-      "invalidCredentials": "Usuario o contraseña incorrectos",
-      "usernameLength": "El nombre debe tener entre 3 y 50 caracteres",
-      "passwordLength": "La contraseña debe tener al menos 6 caracteres"
-    }
+  "specialties": {
+    "Appraise": "Identificar",
+    "Build": "Construir",
+    "Bulldoze": "Demoler",
+    "Burn": "Quemar",
+    "Chop": "Cortar madera",
+    "Collect": "Coleccionar",
+    "Crush": "Pulverizar",
+    "DJ": "DJ",
+    "Dream Island": "Islas Ensueño",
+    "Eat": "Glotonear",
+    "Engineer": "Optimizar",
+    "Explode": "Explotar",
+    "Fly": "Volar",
+    "Gather": "Organizar",
+    "Gather Honey": "Reunir miel",
+    "Generate": "Electrificar",
+    "Grow": "Abonar",
+    "Hype": "Entretener",
+    "Illuminate": "Iluminar",
+    "Litter": "Producir",
+    "Paint": "Pintar",
+    "Party": "Festejar",
+    "Rarify": "Materiales raros",
+    "Recycle": "Reciclar",
+    "Search": "Rastrear",
+    "Storage": "Almacenar",
+    "Teleport": "Teletransportar",
+    "Trade": "Negociar",
+    "Transform": "Transformarse",
+    "Water": "Humedecer",
+    "Yawn": "Bostezar"
   },
-  "profile": {
-    "title": "Mi Perfil",
-    "progress": "Mi Progreso",
-    "exportJson": "Exportar como JSON",
-    "importJson": "Importar desde JSON",
-    "importSuccess": "Progreso importado correctamente",
-    "importError": "Error al importar el progreso",
-    "stats": {
-      "caught": "Pokémon capturados",
-      "seen": "Pokémon vistos",
-      "habitats": "Hábitats construidos",
-      "complete": "Hábitats completos"
-    }
+  "todo": {
+    "title": "Lista de tareas",
+    "subtitle": "Cosas que quieres hacer en el juego",
+    "placeholder": "Añadir nueva tarea...",
+    "add": "Añadir",
+    "clearCompleted": "Borrar completadas",
+    "empty": "No hay tareas. Añade una arriba.",
+    "itemsLeft": "pendientes"
+  },
+  "zoneDashboard": {
+    "title": "Dashboard de Zonas",
+    "subtitle": "Ve tus Pokémon por zona y controla qué habilidades tienes en cada una",
+    "totalCaught": "Total capturados",
+    "assigned": "Asignados a zona",
+    "unassigned": "Sin asignar",
+    "pokemon": "Pokémon",
+    "present": "Habilidades presentes",
+    "missing": "Habilidades que faltan",
+    "caughtHere": "Pokémon en esta zona",
+    "empty": "Ningún Pokémon asignado a esta zona todavía"
   }
 }

@@ -57,11 +57,11 @@ export const ZONES: Zone[] = [
 ];
 
 export const ZONE_LABELS: Record<Zone, { en: string; es: string }> = {
-  palette_town: { en: "Palette Town", es: "Pueblo Paleta" },
-  withered_wastelands: { en: "Withered Wastelands", es: "Páramos Marchitos" },
-  bleak_beach: { en: "Bleak Beach", es: "Playa Sombría" },
+  palette_town: { en: "Palette Town", es: "Pradera Paleta" },
+  withered_wastelands: { en: "Withered Wastelands", es: "Estepa Estéril" },
+  bleak_beach: { en: "Bleak Beach", es: "Bahía Borrasca" },
   rocky_ridges: { en: "Rocky Ridges", es: "Riscos Rocosos" },
-  sparkling_skylands: { en: "Sparkling Skylands", es: "Tierras Celestes" },
+  sparkling_skylands: { en: "Sparkling Skylands", es: "Islas Aisladas" },
   cloud_island: { en: "Cloud Island", es: "Isla Nube" },
 };
 
