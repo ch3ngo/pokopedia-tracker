@@ -13,13 +13,13 @@ export default function App() {
 
   return (
     <BrowserRouter>
-      <div className="min-h-screen flex">
+      <div className="h-screen flex overflow-hidden">
         <Navbar
           collapsed={sidebarCollapsed}
           onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
         />
-        <div className="flex-1 min-w-0 overflow-x-hidden flex flex-col">
-          <main className="flex-1">
+        <div className="flex-1 min-w-0 flex flex-col overflow-hidden">
+          <main className="flex-1 overflow-y-auto overflow-x-hidden">
             <Routes>
               <Route path="/" element={<HomePage />} />
               <Route path="/pokedex" element={<Pokedex />} />
