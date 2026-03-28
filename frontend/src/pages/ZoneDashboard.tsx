@@ -199,9 +199,10 @@ export function ZoneDashboard() {
       const prog = progressMap[p.id];
       return prog?.is_caught && prog?.zone === zone;
     });
-    const presentSpecialties = new Set(zonePokemon.flatMap((p) => p.specialties));
-    const missingSpecialties = ALL_SPECIALTIES.filter((s) => !presentSpecialties.has(s));
-    return { zone, zonePokemon, presentSpecialties, missingSpecialties };
+    const specialtyCounts = new Map<string, number>();
+    zonePokemon.forEach((p) => p.specialties.forEach((s) => specialtyCounts.set(s, (specialtyCounts.get(s) ?? 0) + 1)));
+    const missingSpecialties = ALL_SPECIALTIES.filter((s) => !specialtyCounts.has(s));
+    return { zone, zonePokemon, specialtyCounts, missingSpecialties };
   });
 
   const maxZonePokemon = Math.max(...zoneData.map((z) => z.zonePokemon.length), 1);
@@ -254,10 +255,10 @@ export function ZoneDashboard() {
 
       {/* Per-zone cards */}
       <div className="space-y-4">
-        {zoneData.map(({ zone, zonePokemon, presentSpecialties, missingSpecialties }) => {
+        {zoneData.map(({ zone, zonePokemon, specialtyCounts, missingSpecialties }) => {
           const zoneLabel = ZONE_LABELS[zone][lang];
           const emoji = ZONE_EMOJI[zone] ?? "📍";
-          const specialtyPct = Math.round((presentSpecialties.size / ALL_SPECIALTIES.length) * 100);
+          const specialtyPct = Math.round((specialtyCounts.size / ALL_SPECIALTIES.length) * 100);
           const comfortVal = comfort[zone] ?? 0;
           const activeFilter = specialtyFilter[zone];
           const visiblePokemon = activeFilter
@@ -320,7 +321,7 @@ export function ZoneDashboard() {
                 <div>
                   <div className="flex items-center justify-between mb-1">
                     <p className="text-xs font-semibold text-gray-500 dark:text-gray-400">
-                      {t("zoneDashboard.present", "Specialties present")} ({presentSpecialties.size}/{ALL_SPECIALTIES.length})
+                      {t("zoneDashboard.present", "Specialties present")} ({specialtyCounts.size}/{ALL_SPECIALTIES.length})
                     </p>
                     <span className="text-xs font-bold text-accent-teal">{specialtyPct}%</span>
                   </div>
@@ -332,7 +333,7 @@ export function ZoneDashboard() {
                   </div>
                   {zonePokemon.length > 0 && (
                     <div className="flex flex-wrap gap-1">
-                      {Array.from(presentSpecialties).sort().map((s) => (
+                      {Array.from(specialtyCounts.entries()).sort((a, b) => a[0].localeCompare(b[0])).map(([s, count]) => (
                         <button
                           key={s}
                           onClick={() => toggleSpecialtyFilter(zone, s)}
@@ -342,7 +343,7 @@ export function ZoneDashboard() {
                               : "bg-accent-teal/20 text-accent-teal hover:bg-accent-teal/40"
                           }`}
                         >
-                          {t(`specialties.${s}`, s)}
+                          {t(`specialties.${s}`, s)} (x{count})
                         </button>
                       ))}
                     </div>

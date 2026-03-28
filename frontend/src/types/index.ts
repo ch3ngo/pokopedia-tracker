@@ -8,6 +8,7 @@ export interface Pokemon {
   is_legendary: boolean;
   is_mythical: boolean;
   is_special_npc: boolean;
+  is_event: boolean;
   sprite_key: string;
 }
 
