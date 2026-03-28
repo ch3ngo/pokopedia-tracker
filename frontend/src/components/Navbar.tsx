@@ -1,7 +1,7 @@
 import { useRef, useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { Sun, Moon, Globe, Download, Upload, Menu, X } from "lucide-react";
+import { Sun, Moon, Globe, Download, Upload, Menu, X, Trash2 } from "lucide-react";
 import i18n from "../i18n";
 import { useProgressStore, useUIStore } from "../store";
 
@@ -9,10 +9,11 @@ export function Navbar() {
   const { t } = useTranslation();
   const location = useLocation();
   const { theme, toggleTheme } = useUIStore();
-  const { exportProgress, importProgress } = useProgressStore();
+  const { exportProgress, importProgress, clear } = useProgressStore();
   const lang = i18n.language as "en" | "es";
   const importRef = useRef<HTMLInputElement>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
 
   useEffect(() => setSidebarOpen(false), [location.pathname]);
 
@@ -54,8 +55,15 @@ export function Navbar() {
     e.target.value = "";
   };
 
+  const handleReset = () => {
+    clear();
+    setShowResetConfirm(false);
+    setSidebarOpen(false);
+  };
+
   const navLinks = [
-    { path: "/", label: t("nav.pokedex") },
+    { path: "/", label: t("nav.home") },
+    { path: "/pokedex", label: t("nav.pokedex") },
     { path: "/habitats", label: t("nav.habitatdex") },
     { path: "/zones", label: t("nav.zones") },
     { path: "/todo", label: t("nav.todo") },
@@ -78,21 +86,8 @@ export function Navbar() {
             Pokopedia
           </Link>
 
-          <div className="flex items-center gap-0.5">
-            <button
-              onClick={toggleLang}
-              className="p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
-              title={lang === "en" ? "Español" : "English"}
-            >
-              <Globe className="w-4 h-4" />
-            </button>
-            <button
-              onClick={toggleTheme}
-              className="p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
-            >
-              {theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-            </button>
-          </div>
+          {/* spacer to keep title centered */}
+          <div className="w-9" />
         </div>
       </nav>
 
@@ -125,7 +120,25 @@ export function Navbar() {
               ))}
             </nav>
 
-            {/* Export / Import */}
+            {/* Lang + Theme */}
+            <div className="px-3 py-3 border-t border-gray-200 dark:border-gray-800 flex gap-1 shrink-0">
+              <button
+                onClick={toggleLang}
+                className="flex-1 flex items-center gap-3 px-4 py-3 rounded-xl text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white transition-colors"
+              >
+                <Globe className="w-4 h-4" />
+                <span>{lang === "en" ? "Español" : "English"}</span>
+              </button>
+              <button
+                onClick={toggleTheme}
+                className="flex-1 flex items-center gap-3 px-4 py-3 rounded-xl text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white transition-colors"
+              >
+                {theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+                <span>{theme === "dark" ? "Light" : "Dark"}</span>
+              </button>
+            </div>
+
+            {/* Export / Import / Reset */}
             <div className="px-3 py-4 border-t border-gray-200 dark:border-gray-800 flex flex-col gap-1 shrink-0">
               <button
                 onClick={() => { handleExport(); setSidebarOpen(false); }}
@@ -141,6 +154,16 @@ export function Navbar() {
                 <Upload className="w-4 h-4" />
                 <span>{t("common.import")}</span>
               </button>
+
+              <div className="mt-1 pt-2 border-t border-gray-100 dark:border-gray-800">
+                <button
+                  onClick={() => setShowResetConfirm(true)}
+                  className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  <span>{t("common.resetProgress", "Reset progress")}</span>
+                </button>
+              </div>
             </div>
           </div>
 
@@ -149,6 +172,46 @@ export function Navbar() {
             className="flex-1 bg-black/40 backdrop-blur-sm"
             onClick={() => setSidebarOpen(false)}
           />
+        </div>
+      )}
+
+      {/* Reset confirmation modal */}
+      {showResetConfirm && (
+        <div
+          className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
+          onClick={() => setShowResetConfirm(false)}
+        >
+          <div
+            className="bg-white dark:bg-gray-900 rounded-2xl p-6 w-full max-w-sm shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-center w-12 h-12 rounded-full bg-red-100 dark:bg-red-950/50 mx-auto mb-4">
+              <Trash2 className="w-6 h-6 text-red-500" />
+            </div>
+            <h2 className="font-bold text-lg text-gray-900 dark:text-white text-center mb-2">
+              {t("common.resetConfirmTitle", "Reset all progress?")}
+            </h2>
+            <p className="text-sm text-gray-500 dark:text-gray-400 text-center mb-2">
+              {t("common.resetConfirmBody", "This will erase all caught Pokémon, built habitats, and zone assignments. This action cannot be undone.")}
+            </p>
+            <p className="text-xs font-semibold text-amber-600 dark:text-amber-400 text-center mb-6">
+              {t("common.resetConfirmBackup", "Export a backup before resetting.")}
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowResetConfirm(false)}
+                className="flex-1 py-2.5 rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 font-semibold text-sm hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+              >
+                {t("common.cancel")}
+              </button>
+              <button
+                onClick={handleReset}
+                className="flex-1 py-2.5 rounded-xl bg-red-500 text-white font-semibold text-sm hover:bg-red-600 transition-colors"
+              >
+                {t("common.resetConfirmAction", "Yes, reset")}
+              </button>
+            </div>
+          </div>
         </div>
       )}
 

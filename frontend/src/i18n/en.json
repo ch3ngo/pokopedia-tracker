@@ -1,5 +1,6 @@
 {
   "nav": {
+    "home": "Home",
     "pokedex": "Pokédex",
     "habitatdex": "Habitatdex",
     "zones": "Zones",
@@ -51,9 +52,17 @@
     "specialNpc": "Special NPC",
     "noZone": "No zone assigned",
     "importError": "Failed to import progress: invalid file",
+    "resetProgress": "Reset progress",
+    "resetConfirmTitle": "Reset all progress?",
+    "resetConfirmBody": "This will erase all caught Pokémon, built habitats, and zone assignments. This action cannot be undone.",
+    "resetConfirmBackup": "Export a backup before resetting.",
+    "resetConfirmAction": "Yes, reset",
     "habitats": "Habitats",
     "viewInPokedex": "View in Pokédex",
-    "noResults": "No results found"
+    "noResults": "No results found",
+    "status": "Status",
+    "type": "Type",
+    "category": "Category"
   },
   "pokedex": {
     "title": "Pokédex",
@@ -80,6 +89,7 @@
     "requirements": "Requirements",
     "spawns": "Pokémon that can spawn",
     "markBuilt": "Mark as built",
+    "markNotBuilt": "Unmark built",
     "markComplete": "All attracted",
     "filterAll": "All",
     "filterBuilt": "Built",
@@ -107,8 +117,7 @@
     "withered_wastelands": "Withered Wastelands",
     "bleak_beach": "Bleak Beach",
     "rocky_ridges": "Rocky Ridges",
-    "sparkling_skylands": "Sparkling Skylands",
-    "cloud_island": "Cloud Island"
+    "sparkling_skylands": "Sparkling Skylands"
   },
   "specialties": {
     "Appraise": "Appraise",
@@ -162,6 +171,7 @@
     "present": "Specialties present",
     "missing": "Specialties missing",
     "caughtHere": "Pokémon in this zone",
-    "empty": "No Pokémon assigned to this zone yet"
+    "empty": "No Pokémon assigned to this zone yet",
+    "comfort": "Comfort level"
   }
 }

@@ -20,10 +20,11 @@
     "Fairy": "Hada"
   },
   "nav": {
+    "home": "Inicio",
     "pokedex": "Pokédex",
     "habitatdex": "Habitatdex",
     "zones": "Zonas",
-    "todo": "Lista"
+    "todo": "Tareas"
   },
   "common": {
     "search": "Buscar...",
@@ -51,9 +52,17 @@
     "specialNpc": "NPC Especial",
     "noZone": "Sin zona asignada",
     "importError": "Error al importar: archivo inválido",
+    "resetProgress": "Reiniciar progreso",
+    "resetConfirmTitle": "¿Reiniciar todo el progreso?",
+    "resetConfirmBody": "Esto borrará todos los Pokémon capturados, hábitats construidos y asignaciones de zona. Esta acción no se puede deshacer.",
+    "resetConfirmBackup": "Exporta una copia de seguridad antes de reiniciar.",
+    "resetConfirmAction": "Sí, reiniciar",
     "habitats": "Hábitats",
     "viewInPokedex": "Ver en Pokédex",
-    "noResults": "No se han encontrado resultados"
+    "noResults": "No se han encontrado resultados",
+    "status": "Estado",
+    "type": "Tipo",
+    "category": "Categoría"
   },
   "pokedex": {
     "title": "Pokédex",
@@ -80,6 +89,7 @@
     "requirements": "Requisitos",
     "spawns": "Pokémon que pueden aparecer",
     "markBuilt": "Marcar como construido",
+    "markNotBuilt": "Desmarcar construido",
     "markComplete": "Todos atraídos",
     "filterAll": "Todos",
     "filterBuilt": "Construidos",
@@ -107,8 +117,7 @@
     "withered_wastelands": "Estepa Estéril",
     "bleak_beach": "Bahía Borrasca",
     "rocky_ridges": "Riscos Rocosos",
-    "sparkling_skylands": "Islas Aisladas",
-    "cloud_island": "Isla Nube"
+    "sparkling_skylands": "Islas Aisladas"
   },
   "specialties": {
     "Appraise": "Identificar",
@@ -162,6 +171,7 @@
     "present": "Habilidades presentes",
     "missing": "Habilidades que faltan",
     "caughtHere": "Pokémon en esta zona",
-    "empty": "Ningún Pokémon asignado a esta zona todavía"
+    "empty": "Ningún Pokémon asignado a esta zona todavía",
+    "comfort": "Nivel de comodidad"
   }
 }

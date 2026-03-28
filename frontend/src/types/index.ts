@@ -44,8 +44,7 @@ export type Zone =
   | "withered_wastelands"
   | "bleak_beach"
   | "rocky_ridges"
-  | "sparkling_skylands"
-  | "cloud_island";
+  | "sparkling_skylands";
 
 export const ZONES: Zone[] = [
   "palette_town",
@@ -53,7 +52,6 @@ export const ZONES: Zone[] = [
   "bleak_beach",
   "rocky_ridges",
   "sparkling_skylands",
-  "cloud_island",
 ];
 
 export const ZONE_LABELS: Record<Zone, { en: string; es: string }> = {
@@ -62,7 +60,6 @@ export const ZONE_LABELS: Record<Zone, { en: string; es: string }> = {
   bleak_beach: { en: "Bleak Beach", es: "Bahía Borrasca" },
   rocky_ridges: { en: "Rocky Ridges", es: "Riscos Rocosos" },
   sparkling_skylands: { en: "Sparkling Skylands", es: "Islas Aisladas" },
-  cloud_island: { en: "Cloud Island", es: "Isla Nube" },
 };
 
 export const TYPE_COLORS: Record<string, string> = {

@@ -1,10 +1,13 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import i18n from "../i18n";
-import { getAllPokemon } from "../services/api";
-import { useProgressStore } from "../store";
+import { getAllPokemon, getAllHabitats } from "../services/api";
+import { useProgressStore, useZoneStore } from "../store";
 import { ZONES, ZONE_LABELS } from "../types";
+import type { Pokemon } from "../types";
 import { PokemonSprite } from "../components/PokemonSprite";
+import { PokemonDetailModal } from "../components/PokemonDetailModal";
 
 const ALL_SPECIALTIES = [
   "Appraise", "Build", "Bulldoze", "Burn", "Chop", "Collect", "Crush",
@@ -19,21 +22,53 @@ const ZONE_EMOJI: Record<string, string> = {
   bleak_beach: "🏖️",
   rocky_ridges: "⛰️",
   sparkling_skylands: "☁️",
-  cloud_island: "🌤️",
 };
+
+const COMFORT_COLORS = [
+  "", // 0 unused
+  "bg-red-500",    // 1
+  "bg-red-400",    // 2
+  "bg-orange-500", // 3
+  "bg-orange-400", // 4
+  "bg-yellow-400", // 5
+  "bg-yellow-300", // 6
+  "bg-lime-400",   // 7
+  "bg-green-400",  // 8
+  "bg-green-500",  // 9
+  "bg-emerald-500",// 10
+];
 
 export function ZoneDashboard() {
   const { t } = useTranslation();
   const lang = i18n.language as "en" | "es";
-  const { pokemon: progressMap } = useProgressStore();
+  const { pokemon: progressMap, updatePokemon } = useProgressStore();
+  const { comfort, setComfort } = useZoneStore();
+  const [selectedPokemon, setSelectedPokemon] = useState<Pokemon | null>(null);
 
   const { data: allPokemon = [] } = useQuery({
     queryKey: ["pokemon"],
     queryFn: getAllPokemon,
   });
 
+  const { data: allHabitats = [] } = useQuery({
+    queryKey: ["habitats"],
+    queryFn: getAllHabitats,
+  });
+
   const totalCaught = allPokemon.filter((p) => !p.is_special_npc && progressMap[p.id]?.is_caught).length;
   const assignedCount = allPokemon.filter((p) => progressMap[p.id]?.is_caught && progressMap[p.id]?.zone).length;
+
+  const zoneData = ZONES.map((zone) => {
+    const zonePokemon = allPokemon.filter((p) => {
+      const prog = progressMap[p.id];
+      return prog?.is_caught && prog?.zone === zone;
+    });
+    const presentSpecialties = new Set(zonePokemon.flatMap((p) => p.specialties));
+    const missingSpecialties = ALL_SPECIALTIES.filter((s) => !presentSpecialties.has(s));
+    return { zone, zonePokemon, presentSpecialties, missingSpecialties };
+  });
+
+  const maxZonePokemon = Math.max(...zoneData.map((z) => z.zonePokemon.length), 1);
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
@@ -42,39 +77,52 @@ export function ZoneDashboard() {
         <p className="text-gray-500 dark:text-gray-400 text-sm">{t("zoneDashboard.subtitle")}</p>
       </div>
 
-      {/* Summary */}
-      <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 mb-6 border border-gray-200 dark:border-gray-700 flex gap-6">
-        <div>
-          <p className="text-xs text-gray-500 dark:text-gray-400">{t("zoneDashboard.totalCaught")}</p>
-          <p className="font-bold text-xl text-gray-900 dark:text-white">{totalCaught}</p>
+      {/* Summary stats */}
+      <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 mb-4 border border-gray-200 dark:border-gray-700">
+        <div className="flex gap-6 mb-4">
+          <div>
+            <p className="text-xs text-gray-500 dark:text-gray-400">{t("zoneDashboard.totalCaught")}</p>
+            <p className="font-bold text-xl text-gray-900 dark:text-white">{totalCaught}</p>
+          </div>
+          <div>
+            <p className="text-xs text-gray-500 dark:text-gray-400">{t("zoneDashboard.assigned")}</p>
+            <p className="font-bold text-xl text-gray-900 dark:text-white">{assignedCount}</p>
+          </div>
+          <div>
+            <p className="text-xs text-gray-500 dark:text-gray-400">{t("zoneDashboard.unassigned")}</p>
+            <p className="font-bold text-xl text-brand-500">{totalCaught - assignedCount}</p>
+          </div>
         </div>
-        <div>
-          <p className="text-xs text-gray-500 dark:text-gray-400">{t("zoneDashboard.assigned")}</p>
-          <p className="font-bold text-xl text-gray-900 dark:text-white">{assignedCount}</p>
-        </div>
-        <div>
-          <p className="text-xs text-gray-500 dark:text-gray-400">{t("zoneDashboard.unassigned")}</p>
-          <p className="font-bold text-xl text-brand-500">{totalCaught - assignedCount}</p>
+
+        {/* Zone distribution bars */}
+        <div className="space-y-2">
+          {zoneData.map(({ zone, zonePokemon }) => {
+            const label = ZONE_LABELS[zone][lang];
+            const pct = maxZonePokemon > 0 ? (zonePokemon.length / maxZonePokemon) * 100 : 0;
+            return (
+              <div key={zone} className="flex items-center gap-3">
+                <span className="text-base w-6 text-center">{ZONE_EMOJI[zone]}</span>
+                <span className="text-xs text-gray-500 dark:text-gray-400 w-32 shrink-0 truncate">{label}</span>
+                <div className="flex-1 h-2 rounded-full bg-gray-100 dark:bg-gray-700 overflow-hidden">
+                  <div
+                    className="h-full rounded-full bg-brand-500 transition-all duration-500"
+                    style={{ width: `${pct}%` }}
+                  />
+                </div>
+                <span className="text-xs font-semibold text-gray-600 dark:text-gray-400 w-6 text-right">{zonePokemon.length}</span>
+              </div>
+            );
+          })}
         </div>
       </div>
 
+      {/* Per-zone cards */}
       <div className="space-y-4">
-        {ZONES.map((zone) => {
+        {zoneData.map(({ zone, zonePokemon, presentSpecialties, missingSpecialties }) => {
           const zoneLabel = ZONE_LABELS[zone][lang];
           const emoji = ZONE_EMOJI[zone] ?? "📍";
-
-          const zonePokemon = allPokemon.filter((p) => {
-            const prog = progressMap[p.id];
-            return prog?.is_caught && prog?.zone === zone;
-          });
-
-          const presentSpecialties = new Set(
-            zonePokemon.flatMap((p) => p.specialties)
-          );
-
-          const missingSpecialties = ALL_SPECIALTIES.filter(
-            (s) => !presentSpecialties.has(s)
-          );
+          const specialtyPct = Math.round((presentSpecialties.size / ALL_SPECIALTIES.length) * 100);
+          const comfortVal = comfort[zone] ?? 0;
 
           return (
             <div
@@ -82,7 +130,7 @@ export function ZoneDashboard() {
               className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden"
             >
               {/* Zone header */}
-              <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between">
+              <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between flex-wrap gap-2">
                 <div className="flex items-center gap-2">
                   <span className="text-xl">{emoji}</span>
                   <h2 className="font-bold text-gray-900 dark:text-white">{zoneLabel}</h2>
@@ -92,67 +140,118 @@ export function ZoneDashboard() {
                 </span>
               </div>
 
-              <div className="p-4">
+              <div className="p-4 space-y-4">
+                {/* Comfort level */}
+                <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <p className="text-xs font-semibold text-gray-500 dark:text-gray-400">
+                      {t("zoneDashboard.comfort", "Comfort level")}
+                    </p>
+                    <span className={`text-xs font-bold px-2 py-0.5 rounded-full text-white ${comfortVal > 0 ? COMFORT_COLORS[comfortVal] : "bg-gray-300 dark:bg-gray-600"}`}>
+                      {comfortVal > 0 ? `${comfortVal}/10` : "—"}
+                    </span>
+                  </div>
+                  <div className="flex gap-1">
+                    {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => (
+                      <button
+                        key={n}
+                        onClick={() => setComfort(zone, comfortVal === n ? 0 : n)}
+                        className={`flex-1 h-5 rounded transition-all duration-150
+                          ${n <= comfortVal
+                            ? COMFORT_COLORS[comfortVal] + " opacity-90"
+                            : "bg-gray-100 dark:bg-gray-700"
+                          }`}
+                        title={`${n}/10`}
+                      />
+                    ))}
+                  </div>
+                </div>
+
+                {/* Specialty coverage bar */}
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <p className="text-xs font-semibold text-gray-500 dark:text-gray-400">
+                      {t("zoneDashboard.present", "Specialties present")} ({presentSpecialties.size}/{ALL_SPECIALTIES.length})
+                    </p>
+                    <span className="text-xs font-bold text-accent-teal">{specialtyPct}%</span>
+                  </div>
+                  <div className="h-2 rounded-full bg-gray-100 dark:bg-gray-700 overflow-hidden mb-2">
+                    <div
+                      className="h-full rounded-full bg-accent-teal transition-all duration-500"
+                      style={{ width: `${specialtyPct}%` }}
+                    />
+                  </div>
+                  {zonePokemon.length > 0 && (
+                    <div className="flex flex-wrap gap-1">
+                      {Array.from(presentSpecialties).sort().map((s) => (
+                        <span key={s} className="px-2 py-0.5 rounded-full bg-accent-teal/20 text-accent-teal text-xs font-semibold">
+                          {t(`specialties.${s}`, s)}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Missing specialties */}
+                {missingSpecialties.length > 0 && zonePokemon.length > 0 && (
+                  <div>
+                    <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">
+                      {t("zoneDashboard.missing", "Missing")} ({missingSpecialties.length})
+                    </p>
+                    <div className="flex flex-wrap gap-1">
+                      {missingSpecialties.map((s) => (
+                        <span key={s} className="px-2 py-0.5 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500 text-xs">
+                          {t(`specialties.${s}`, s)}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Pokémon sprites — clickable */}
                 {zonePokemon.length === 0 ? (
                   <p className="text-sm text-gray-400 dark:text-gray-500 italic">{t("zoneDashboard.empty")}</p>
                 ) : (
-                  <>
-                    {/* Specialties present */}
-                    <div className="mb-3">
-                      <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1.5">
-                        {t("zoneDashboard.present")} ({presentSpecialties.size}/{ALL_SPECIALTIES.length})
-                      </p>
-                      <div className="flex flex-wrap gap-1">
-                        {Array.from(presentSpecialties).sort().map((s) => (
-                          <span key={s} className="px-2 py-0.5 rounded-full bg-accent-teal/20 text-accent-teal text-xs font-semibold">
-                            {t(`specialties.${s}`, s)}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Specialties missing */}
-                    {missingSpecialties.length > 0 && (
-                      <div className="mb-3">
-                        <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1.5">
-                          {t("zoneDashboard.missing")} ({missingSpecialties.length})
-                        </p>
-                        <div className="flex flex-wrap gap-1">
-                          {missingSpecialties.map((s) => (
-                            <span key={s} className="px-2 py-0.5 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500 text-xs">
-                              {t(`specialties.${s}`, s)}
+                  <div>
+                    <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1.5">
+                      {t("zoneDashboard.caughtHere")}
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {zonePokemon.map((p) => {
+                        const pName = lang === "es" ? p.name_es : p.name_en;
+                        return (
+                          <button
+                            key={p.id}
+                            onClick={() => setSelectedPokemon(p)}
+                            className="flex flex-col items-center gap-0.5 hover:opacity-75 transition-opacity"
+                            title={pName}
+                          >
+                            <PokemonSprite spriteKey={p.sprite_key} name={pName} size="sm" />
+                            <span className="text-[10px] text-gray-500 dark:text-gray-400 text-center w-14 leading-tight truncate">
+                              {pName}
                             </span>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Pokémon sprites */}
-                    <div>
-                      <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1.5">
-                        {t("zoneDashboard.caughtHere")}
-                      </p>
-                      <div className="flex flex-wrap gap-2">
-                        {zonePokemon.map((p) => {
-                          const pName = lang === "es" ? p.name_es : p.name_en;
-                          return (
-                            <div key={p.id} className="flex flex-col items-center gap-0.5" title={pName}>
-                              <PokemonSprite spriteKey={p.sprite_key} name={pName} size="sm" />
-                              <span className="text-[10px] text-gray-500 dark:text-gray-400 text-center w-14 leading-tight truncate">
-                                {pName}
-                              </span>
-                            </div>
-                          );
-                        })}
-                      </div>
+                          </button>
+                        );
+                      })}
                     </div>
-                  </>
+                  </div>
                 )}
               </div>
             </div>
           );
         })}
       </div>
+
+      {selectedPokemon && (
+        <PokemonDetailModal
+          pokemon={selectedPokemon}
+          progress={progressMap[selectedPokemon.id]}
+          onUpdate={(update) => updatePokemon(selectedPokemon.id, update)}
+          onClose={() => setSelectedPokemon(null)}
+          lang={lang}
+          habitats={allHabitats}
+        />
+      )}
     </div>
   );
 }

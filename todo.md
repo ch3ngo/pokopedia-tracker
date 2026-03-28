@@ -1,3 +1,10 @@
-- Modifica la interfaz para Desktop también, no solo para app.
-- La interfaz no me gusta el layout, me gusta la tipografía retro pero no me gusta mucho la distribución del texto. Tampoco me gusta distinción entre míticos y legendarios. Me da la sensación de ser una app poco currada y quiero que sea un poco más. Que haya gráficas o que haya elementos visuales que den información rápida más chula
-- Los tipos siguen estando en inglés todo el rato o también están en español ya? Si no están, pon los tipos de los pokémon en español también para el idioma español
+- In Spanish, rename 'Lista' for 'Tareas'
+- Remove Cloud Island from the zones list
+- In the zones list, include graphics too. % of abilities present in each zone, bars showing how much pokemon are in each zone, also a tracker for which comfort level (1 - 10) has each zone where the user can manually define it as it is a critical thing for the progress of the game
+- In the habitatdex, Lovely Ribbon Cake is not a legendary habitat, it is a Specialized one
+- Include a Home menu (where the user lands when opening) showing statistics of each thing, for example, progress in the Pokedex, in the Habitatdex, list of pending tasks the user have, how many pokemon are in each zone. At the top, there must be 'Daily reminders' which the user can check as done once he does them: 
+	- Daily stamp
+	- Feed Mosslax
+	- Water the plants
+	- Dream Island
+- In the Zones menu, the user should be able to access the Pokemon's menu from there clicking on it

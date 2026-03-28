@@ -85,7 +85,7 @@ export function HabitatCard({ habitat, progress, allPokemon, onUpdate, lang }: P
   const handlePokemonNavigate = (pokemon: Pokemon, e: { stopPropagation: () => void }) => {
     e.stopPropagation();
     const pName = lang === "es" ? pokemon.name_es : pokemon.name_en;
-    navigate(`/?search=${encodeURIComponent(pName)}`);
+    navigate(`/pokedex?search=${encodeURIComponent(pName)}`);
   };
 
   return (
@@ -140,7 +140,7 @@ export function HabitatCard({ habitat, progress, allPokemon, onUpdate, lang }: P
               ${isBuilt ? "bg-brand-500 text-white" : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300"}`}
           >
             <Hammer className="w-3 h-3" />
-            {isBuilt ? t("common.built") : t("habitatdex.markBuilt")}
+            {isBuilt ? t("habitatdex.markNotBuilt") : t("habitatdex.markBuilt")}
           </button>
           {spawnPokemon.length > 0 && (
             <button
