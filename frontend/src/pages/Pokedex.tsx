@@ -10,7 +10,7 @@ import { PokemonCard } from "../components/PokemonCard";
 import { StatsRing } from "../components/StatsRing";
 import type { PokemonProgress } from "../types";
 
-type Filter = "all" | "caught" | "uncaught" | "specials" | "npc";
+type Filter = "all" | "caught" | "uncaught" | "specials" | "npc" | "event";
 
 export function Pokedex() {
   const { t } = useTranslation();
@@ -20,7 +20,7 @@ export function Pokedex() {
 
   const [search, setSearch] = useState(searchParams.get("search") ?? "");
   const [filter, setFilter] = useState<Filter>("all");
-  const [typeFilter, setTypeFilter] = useState("all");
+  const [specialtyFilter, setSpecialtyFilter] = useState("all");
 
   const { data: allPokemon = [] } = useQuery({
     queryKey: ["pokemon"],
@@ -34,10 +34,10 @@ export function Pokedex() {
 
   const getProgress = (id: number): PokemonProgress | undefined => progressMap[id];
 
-  const allTypes = useMemo(() => {
-    const types = new Set<string>();
-    allPokemon.forEach((p) => p.types.forEach((tp) => types.add(tp)));
-    return Array.from(types).sort();
+  const allSpecialties = useMemo(() => {
+    const specs = new Set<string>();
+    allPokemon.forEach((p) => p.specialties.forEach((s) => specs.add(s)));
+    return Array.from(specs).sort();
   }, [allPokemon]);
 
   const filtered = useMemo(() => {
@@ -46,18 +46,19 @@ export function Pokedex() {
       const name = lang === "es" ? p.name_es : p.name_en;
 
       if (search && !name.toLowerCase().includes(search.toLowerCase())) return false;
-      if (typeFilter !== "all" && !p.types.includes(typeFilter)) return false;
+      if (specialtyFilter !== "all" && !p.specialties.includes(specialtyFilter)) return false;
 
       switch (filter) {
         case "caught": return progress?.is_caught ?? false;
         case "uncaught": return !(progress?.is_caught ?? false);
         case "specials": return p.is_legendary || p.is_mythical;
         case "npc": return p.is_special_npc;
+        case "event": return p.is_event;
         default: return true;
       }
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [allPokemon, search, filter, typeFilter, lang, progressMap]);
+  }, [allPokemon, search, filter, specialtyFilter, lang, progressMap]);
 
   const totalPokemon = allPokemon.filter((p) => !p.is_special_npc).length;
   const caughtCount = allPokemon.filter((p) => !p.is_special_npc && getProgress(p.id)?.is_caught).length;
@@ -73,6 +74,7 @@ export function Pokedex() {
     { key: "uncaught", label: t("pokedex.filterUncaught") },
     { key: "specials", label: t("pokedex.filterSpecials") },
     { key: "npc", label: t("pokedex.filterNpc") },
+    { key: "event", label: t("pokedex.filterEvent") },
   ];
 
   return (
@@ -135,33 +137,33 @@ export function Pokedex() {
             </div>
           </div>
 
-          {/* Type filter */}
+          {/* Specialty filter */}
           <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 border border-gray-200 dark:border-gray-700">
             <p className="text-[9px] font-pixel text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2">
-              {t("common.type", "Type")}
+              {t("common.specialty", "Specialty")}
             </p>
             <div className="space-y-0.5 max-h-64 overflow-y-auto pr-1">
               <button
-                onClick={() => setTypeFilter("all")}
+                onClick={() => setSpecialtyFilter("all")}
                 className={`w-full text-left px-3 py-1.5 rounded-xl text-sm font-semibold transition-colors
-                  ${typeFilter === "all"
+                  ${specialtyFilter === "all"
                     ? "bg-gray-900 dark:bg-white text-white dark:text-gray-900"
                     : "text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white"
                   }`}
               >
                 {t("common.all")}
               </button>
-              {allTypes.map((type) => (
+              {allSpecialties.map((spec) => (
                 <button
-                  key={type}
-                  onClick={() => setTypeFilter(type === typeFilter ? "all" : type)}
+                  key={spec}
+                  onClick={() => setSpecialtyFilter(spec === specialtyFilter ? "all" : spec)}
                   className={`w-full text-left px-3 py-1.5 rounded-xl text-sm font-semibold transition-colors
-                    ${typeFilter === type
+                    ${specialtyFilter === spec
                       ? "bg-gray-900 dark:bg-white text-white dark:text-gray-900"
                       : "text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white"
                     }`}
                 >
-                  {t(`types.${type}`, type)}
+                  {t(`specialties.${spec}`, spec)}
                 </button>
               ))}
             </div>
@@ -217,26 +219,26 @@ export function Pokedex() {
             </div>
             <div className="flex flex-wrap gap-1">
               <button
-                onClick={() => setTypeFilter("all")}
+                onClick={() => setSpecialtyFilter("all")}
                 className={`px-2 py-1 rounded-full text-xs font-semibold transition-colors
-                  ${typeFilter === "all"
+                  ${specialtyFilter === "all"
                     ? "bg-gray-900 dark:bg-white text-white dark:text-gray-900"
                     : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300"
                   }`}
               >
                 {t("common.all")}
               </button>
-              {allTypes.map((type) => (
+              {allSpecialties.map((spec) => (
                 <button
-                  key={type}
-                  onClick={() => setTypeFilter(type === typeFilter ? "all" : type)}
+                  key={spec}
+                  onClick={() => setSpecialtyFilter(spec === specialtyFilter ? "all" : spec)}
                   className={`px-2 py-1 rounded-full text-xs font-semibold transition-colors
-                    ${typeFilter === type
+                    ${specialtyFilter === spec
                       ? "bg-gray-900 dark:bg-white text-white dark:text-gray-900"
                       : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300"
                     }`}
                 >
-                  {t(`types.${type}`, type)}
+                  {t(`specialties.${spec}`, spec)}
                 </button>
               ))}
             </div>

@@ -62,7 +62,8 @@
     "noResults": "No se han encontrado resultados",
     "status": "Estado",
     "type": "Tipo",
-    "category": "Categoría"
+    "category": "Categoría",
+    "specialty": "Habilidad"
   },
   "pokedex": {
     "title": "Pokédex",
@@ -74,6 +75,7 @@
     "filterUncaught": "No capturados",
     "filterSpecials": "Especiales",
     "filterNpc": "NPC Especiales",
+    "filterEvent": "Pokémon de evento",
     "markCaught": "Marcar como capturado",
     "assignZone": "Asignar zona",
     "stats": "Progreso de la Pokédex",

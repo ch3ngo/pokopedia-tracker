@@ -11,6 +11,7 @@ class PokemonOut(BaseModel):
     is_legendary: bool
     is_mythical: bool
     is_special_npc: bool
+    is_event: bool
     sprite_key: str
 
     model_config = {"from_attributes": True}

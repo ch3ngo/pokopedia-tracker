@@ -62,7 +62,8 @@
     "noResults": "No results found",
     "status": "Status",
     "type": "Type",
-    "category": "Category"
+    "category": "Category",
+    "specialty": "Specialty"
   },
   "pokedex": {
     "title": "Pokédex",
@@ -74,6 +75,7 @@
     "filterUncaught": "Uncaught",
     "filterSpecials": "Specials",
     "filterNpc": "Special NPCs",
+    "filterEvent": "Event Pokémon",
     "markCaught": "Mark as caught",
     "assignZone": "Assign zone",
     "stats": "Pokédex progress",

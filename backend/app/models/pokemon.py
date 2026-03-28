@@ -16,4 +16,5 @@ class Pokemon(Base):
     is_legendary: Mapped[bool] = mapped_column(Boolean, default=False)
     is_mythical: Mapped[bool] = mapped_column(Boolean, default=False)
     is_special_npc: Mapped[bool] = mapped_column(Boolean, default=False)
+    is_event: Mapped[bool] = mapped_column(Boolean, default=False)
     sprite_key: Mapped[str] = mapped_column(String(150))  # wikidex filename key

@@ -257,7 +257,7 @@ export function Habitatdex() {
               <p className="text-sm font-semibold">{t("common.noResults")}</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-3 animate-fade-in">
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3 animate-fade-in">
               {filtered.map((h) => (
                 <HabitatCard
                   key={h.id}
