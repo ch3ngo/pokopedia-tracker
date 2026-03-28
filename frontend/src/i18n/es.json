@@ -171,6 +171,7 @@
     "present": "Habilidades presentes",
     "missing": "Habilidades que faltan",
     "caughtHere": "Pokémon en esta zona",
+    "noMatch": "Ningún Pokémon con esta habilidad en esta zona.",
     "empty": "Ningún Pokémon asignado a esta zona todavía",
     "comfort": "Nivel de comodidad",
     "addPokemon": "Añadir Pokémon a la zona",

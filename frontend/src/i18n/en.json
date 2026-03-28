@@ -171,6 +171,7 @@
     "present": "Specialties present",
     "missing": "Specialties missing",
     "caughtHere": "Pokémon in this zone",
+    "noMatch": "No Pokémon with this specialty in this zone.",
     "empty": "No Pokémon assigned to this zone yet",
     "comfort": "Comfort level",
     "addPokemon": "Add Pokémon to zone",

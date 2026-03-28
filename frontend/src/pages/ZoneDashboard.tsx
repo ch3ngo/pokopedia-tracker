@@ -160,6 +160,14 @@ export function ZoneDashboard() {
   const { comfort, setComfort } = useZoneStore();
   const [selectedPokemon, setSelectedPokemon] = useState<Pokemon | null>(null);
   const [bulkZone, setBulkZone] = useState<Zone | null>(null);
+  const [specialtyFilter, setSpecialtyFilter] = useState<Partial<Record<Zone, string>>>({});
+
+  const toggleSpecialtyFilter = (zone: Zone, specialty: string) => {
+    setSpecialtyFilter((prev) => ({
+      ...prev,
+      [zone]: prev[zone] === specialty ? undefined : specialty,
+    }));
+  };
 
   const { data: allPokemon = [] } = useQuery({
     queryKey: ["pokemon"],
@@ -251,6 +259,10 @@ export function ZoneDashboard() {
           const emoji = ZONE_EMOJI[zone] ?? "📍";
           const specialtyPct = Math.round((presentSpecialties.size / ALL_SPECIALTIES.length) * 100);
           const comfortVal = comfort[zone] ?? 0;
+          const activeFilter = specialtyFilter[zone];
+          const visiblePokemon = activeFilter
+            ? zonePokemon.filter((p) => p.specialties.includes(activeFilter))
+            : zonePokemon;
 
           return (
             <div
@@ -321,9 +333,17 @@ export function ZoneDashboard() {
                   {zonePokemon.length > 0 && (
                     <div className="flex flex-wrap gap-1">
                       {Array.from(presentSpecialties).sort().map((s) => (
-                        <span key={s} className="px-2 py-0.5 rounded-full bg-accent-teal/20 text-accent-teal text-xs font-semibold">
+                        <button
+                          key={s}
+                          onClick={() => toggleSpecialtyFilter(zone, s)}
+                          className={`px-2 py-0.5 rounded-full text-xs font-semibold transition-colors ${
+                            activeFilter === s
+                              ? "bg-accent-teal text-white"
+                              : "bg-accent-teal/20 text-accent-teal hover:bg-accent-teal/40"
+                          }`}
+                        >
                           {t(`specialties.${s}`, s)}
-                        </span>
+                        </button>
                       ))}
                     </div>
                   )}
@@ -350,27 +370,40 @@ export function ZoneDashboard() {
                   <p className="text-sm text-gray-400 dark:text-gray-500 italic">{t("zoneDashboard.empty")}</p>
                 ) : (
                   <div>
-                    <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1.5">
-                      {t("zoneDashboard.caughtHere")}
-                    </p>
-                    <div className="flex flex-wrap gap-2">
-                      {zonePokemon.map((p) => {
-                        const pName = lang === "es" ? p.name_es : p.name_en;
-                        return (
-                          <button
-                            key={p.id}
-                            onClick={() => setSelectedPokemon(p)}
-                            className="flex flex-col items-center gap-0.5 hover:opacity-75 transition-opacity"
-                            title={pName}
-                          >
-                            <PokemonSprite spriteKey={p.sprite_key} name={pName} size="sm" />
-                            <span className="text-[10px] text-gray-500 dark:text-gray-400 text-center w-14 leading-tight truncate">
-                              {pName}
-                            </span>
-                          </button>
-                        );
-                      })}
+                    <div className="flex items-center justify-between mb-1.5">
+                      <p className="text-xs font-semibold text-gray-500 dark:text-gray-400">
+                        {t("zoneDashboard.caughtHere")}
+                      </p>
+                      {activeFilter && (
+                        <span className="text-xs text-accent-teal font-semibold">
+                          {visiblePokemon.length}/{zonePokemon.length}
+                        </span>
+                      )}
                     </div>
+                    {visiblePokemon.length === 0 ? (
+                      <p className="text-sm text-gray-400 dark:text-gray-500 italic">
+                        {t("zoneDashboard.noMatch", "No Pokémon with this specialty in this zone.")}
+                      </p>
+                    ) : (
+                      <div className="flex flex-wrap gap-2">
+                        {visiblePokemon.map((p) => {
+                          const pName = lang === "es" ? p.name_es : p.name_en;
+                          return (
+                            <button
+                              key={p.id}
+                              onClick={() => setSelectedPokemon(p)}
+                              className="flex flex-col items-center gap-0.5 hover:opacity-75 transition-opacity"
+                              title={pName}
+                            >
+                              <PokemonSprite spriteKey={p.sprite_key} name={pName} size="sm" />
+                              <span className="text-[10px] text-gray-500 dark:text-gray-400 text-center w-14 leading-tight truncate">
+                                {pName}
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
