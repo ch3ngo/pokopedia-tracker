@@ -27,7 +27,10 @@ export const useProgressStore = create<ProgressStore>()(
             zone: null,
             notes: null,
           };
-          return { pokemon: { ...state.pokemon, [id]: { ...base, ...update } } };
+          const merged = { ...base, ...update };
+          // Assigning a zone implies the Pokémon was caught
+          if (update.zone != null) merged.is_caught = true;
+          return { pokemon: { ...state.pokemon, [id]: merged } };
         }),
 
       updateHabitat: (id, update) =>

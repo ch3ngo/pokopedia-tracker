@@ -172,6 +172,9 @@
     "missing": "Habilidades que faltan",
     "caughtHere": "Pokémon en esta zona",
     "empty": "Ningún Pokémon asignado a esta zona todavía",
-    "comfort": "Nivel de comodidad"
+    "comfort": "Nivel de comodidad",
+    "addPokemon": "Añadir Pokémon a la zona",
+    "selected": "seleccionados",
+    "done": "Listo"
   }
 }

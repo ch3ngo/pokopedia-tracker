@@ -5,9 +5,10 @@ import i18n from "../i18n";
 import { getAllPokemon, getAllHabitats } from "../services/api";
 import { useProgressStore, useZoneStore } from "../store";
 import { ZONES, ZONE_LABELS } from "../types";
-import type { Pokemon } from "../types";
+import type { Pokemon, PokemonProgress, Zone } from "../types";
 import { PokemonSprite } from "../components/PokemonSprite";
 import { PokemonDetailModal } from "../components/PokemonDetailModal";
+import { Plus } from "lucide-react";
 
 const ALL_SPECIALTIES = [
   "Appraise", "Build", "Bulldoze", "Burn", "Chop", "Collect", "Crush",
@@ -38,12 +39,127 @@ const COMFORT_COLORS = [
   "bg-emerald-500",// 10
 ];
 
+function BulkZoneModal({
+  zone,
+  allPokemon,
+  progressMap,
+  lang,
+  onDone,
+  onClose,
+}: {
+  zone: Zone;
+  allPokemon: Pokemon[];
+  progressMap: Record<number, PokemonProgress>;
+  lang: "en" | "es";
+  onDone: (selected: Set<number>) => void;
+  onClose: () => void;
+}) {
+  const { t } = useTranslation();
+  const [selected, setSelected] = useState<Set<number>>(() => {
+    const s = new Set<number>();
+    allPokemon.forEach((p) => {
+      if (progressMap[p.id]?.zone === zone) s.add(p.id);
+    });
+    return s;
+  });
+  const [search, setSearch] = useState("");
+
+  const filtered = allPokemon
+    .filter((p) => !p.is_special_npc)
+    .filter((p) => {
+      const name = lang === "es" ? p.name_es : p.name_en;
+      return name.toLowerCase().includes(search.toLowerCase());
+    });
+
+  const toggle = (id: number) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+      onClick={onClose}
+    >
+      <div
+        className="bg-white dark:bg-gray-900 rounded-3xl p-4 w-full max-w-md shadow-2xl flex flex-col max-h-[85vh]"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="font-bold text-gray-900 dark:text-white">{t("zoneDashboard.addPokemon")}</h3>
+          <span className="text-xs text-gray-500 dark:text-gray-400">
+            {selected.size} {t("zoneDashboard.selected")}
+          </span>
+        </div>
+        <input
+          type="text"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder={t("common.search")}
+          className="w-full rounded-xl bg-gray-100 dark:bg-gray-800 px-3 py-2 text-sm text-gray-900 dark:text-white mb-3 outline-none"
+          autoFocus
+        />
+        <div className="overflow-y-auto flex-1 space-y-0.5">
+          {filtered.map((p) => {
+            const name = lang === "es" ? p.name_es : p.name_en;
+            const isChecked = selected.has(p.id);
+            return (
+              <button
+                key={p.id}
+                onClick={() => toggle(p.id)}
+                className={`w-full flex items-center gap-3 px-3 py-1.5 rounded-xl text-left transition-colors
+                  ${isChecked
+                    ? "bg-brand-500/10 text-brand-500"
+                    : "hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300"
+                  }`}
+              >
+                <div
+                  className={`w-4 h-4 rounded border-2 flex items-center justify-center shrink-0 transition-colors
+                    ${isChecked ? "bg-brand-500 border-brand-500" : "border-gray-400 dark:border-gray-500"}`}
+                >
+                  {isChecked && (
+                    <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                  )}
+                </div>
+                <PokemonSprite spriteKey={p.sprite_key} name={name} size="sm" />
+                <span className="text-sm font-medium truncate flex-1">{name}</span>
+                <span className="text-xs text-gray-400 shrink-0">#{String(p.id).padStart(3, "0")}</span>
+              </button>
+            );
+          })}
+        </div>
+        <div className="flex gap-2 mt-3">
+          <button
+            onClick={onClose}
+            className="flex-1 py-2 rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 font-semibold text-sm"
+          >
+            {t("common.cancel")}
+          </button>
+          <button
+            onClick={() => onDone(selected)}
+            className="flex-1 py-2 rounded-xl bg-brand-500 text-white font-semibold text-sm"
+          >
+            {t("zoneDashboard.done")}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function ZoneDashboard() {
   const { t } = useTranslation();
   const lang = i18n.language as "en" | "es";
   const { pokemon: progressMap, updatePokemon } = useProgressStore();
   const { comfort, setComfort } = useZoneStore();
   const [selectedPokemon, setSelectedPokemon] = useState<Pokemon | null>(null);
+  const [bulkZone, setBulkZone] = useState<Zone | null>(null);
 
   const { data: allPokemon = [] } = useQuery({
     queryKey: ["pokemon"],
@@ -55,8 +171,20 @@ export function ZoneDashboard() {
     queryFn: getAllHabitats,
   });
 
+  const handleBulkDone = (zone: Zone, selected: Set<number>) => {
+    allPokemon.forEach((p) => {
+      const currentZone = progressMap[p.id]?.zone;
+      if (selected.has(p.id)) {
+        if (currentZone !== zone) updatePokemon(p.id, { zone });
+      } else if (currentZone === zone) {
+        updatePokemon(p.id, { zone: null });
+      }
+    });
+    setBulkZone(null);
+  };
+
   const totalCaught = allPokemon.filter((p) => !p.is_special_npc && progressMap[p.id]?.is_caught).length;
-  const assignedCount = allPokemon.filter((p) => progressMap[p.id]?.is_caught && progressMap[p.id]?.zone).length;
+  const assignedCount = allPokemon.filter((p) => !p.is_special_npc && progressMap[p.id]?.is_caught && progressMap[p.id]?.zone).length;
 
   const zoneData = ZONES.map((zone) => {
     const zonePokemon = allPokemon.filter((p) => {
@@ -135,9 +263,18 @@ export function ZoneDashboard() {
                   <span className="text-xl">{emoji}</span>
                   <h2 className="font-bold text-gray-900 dark:text-white">{zoneLabel}</h2>
                 </div>
-                <span className="text-xs font-semibold bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 px-2 py-1 rounded-full">
-                  {zonePokemon.length} {t("zoneDashboard.pokemon")}
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-semibold bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 px-2 py-1 rounded-full">
+                    {zonePokemon.length} {t("zoneDashboard.pokemon")}
+                  </span>
+                  <button
+                    onClick={() => setBulkZone(zone)}
+                    className="flex items-center gap-1 text-xs font-semibold bg-brand-500/10 text-brand-500 hover:bg-brand-500/20 px-2 py-1 rounded-full transition-colors"
+                    title={t("zoneDashboard.addPokemon")}
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                  </button>
+                </div>
               </div>
 
               <div className="p-4 space-y-4">
@@ -250,6 +387,17 @@ export function ZoneDashboard() {
           onClose={() => setSelectedPokemon(null)}
           lang={lang}
           habitats={allHabitats}
+        />
+      )}
+
+      {bulkZone && (
+        <BulkZoneModal
+          zone={bulkZone}
+          allPokemon={allPokemon}
+          progressMap={progressMap}
+          lang={lang}
+          onDone={(selected) => handleBulkDone(bulkZone, selected)}
+          onClose={() => setBulkZone(null)}
         />
       )}
     </div>

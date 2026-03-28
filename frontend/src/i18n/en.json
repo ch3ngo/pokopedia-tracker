@@ -172,6 +172,9 @@
     "missing": "Specialties missing",
     "caughtHere": "Pokémon in this zone",
     "empty": "No Pokémon assigned to this zone yet",
-    "comfort": "Comfort level"
+    "comfort": "Comfort level",
+    "addPokemon": "Add Pokémon to zone",
+    "selected": "selected",
+    "done": "Done"
   }
 }

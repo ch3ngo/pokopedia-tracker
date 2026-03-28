@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Navbar } from "./components/Navbar";
 import { HomePage } from "./pages/HomePage";
@@ -7,11 +8,16 @@ import { ZoneDashboard } from "./pages/ZoneDashboard";
 import { TodoPage } from "./pages/TodoPage";
 
 export default function App() {
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+
   return (
     <BrowserRouter>
-      <div className="min-h-screen flex flex-col">
-        <Navbar />
-        <main className="flex-1 min-w-0">
+      <div className="min-h-screen flex">
+        <Navbar
+          collapsed={sidebarCollapsed}
+          onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
+        />
+        <main className="flex-1 min-w-0 overflow-x-hidden">
           <Routes>
             <Route path="/" element={<HomePage />} />
             <Route path="/pokedex" element={<Pokedex />} />
