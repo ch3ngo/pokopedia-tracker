@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
-import { Hammer, CheckCircle2 } from "lucide-react";
+import { Hammer, CheckCircle2, ListTodo } from "lucide-react";
 import type { Habitat, HabitatProgress, Pokemon } from "../types";
-import { useProgressStore } from "../store";
+import { useProgressStore, useTodoStore } from "../store";
 import { PokemonSprite } from "./PokemonSprite";
 
 const CATEGORY_EMOJI: Record<string, string> = {
@@ -51,12 +51,15 @@ interface Props {
   onUpdate: (update: Partial<HabitatProgress>) => void;
   onClose: () => void;
   lang: "en" | "es";
+  onBack?: () => void;
 }
 
-export function HabitatDetailModal({ habitat, progress, allPokemon, onUpdate, onClose, lang }: Props) {
+export function HabitatDetailModal({ habitat, progress, allPokemon, onUpdate, onClose, lang, onBack }: Props) {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { pokemon: pokemonProgress } = useProgressStore();
+  const { pokemon: pokemonProgress, updatePokemon } = useProgressStore();
+  const { addTodo } = useTodoStore();
+  const [addedToTodo, setAddedToTodo] = useState(false);
 
   const isBuilt = progress?.is_built ?? false;
   const attracted = progress?.pokemon_attracted ?? [];
@@ -74,16 +77,22 @@ export function HabitatDetailModal({ habitat, progress, allPokemon, onUpdate, on
 
   const toggleAttracted = (pokemonId: number) => {
     const current = progress?.pokemon_attracted ?? [];
-    const next = current.includes(pokemonId)
-      ? current.filter((id) => id !== pokemonId)
-      : [...current, pokemonId];
-    onUpdate({ pokemon_attracted: next });
+    if (current.includes(pokemonId)) {
+      onUpdate({ pokemon_attracted: current.filter((id) => id !== pokemonId) });
+    } else {
+      onUpdate({ pokemon_attracted: [...current, pokemonId] });
+      // Sync to Pokédex: mark as caught
+      updatePokemon(pokemonId, { is_caught: true });
+    }
   };
 
-  const handlePokemonNavigate = (pokemon: Pokemon) => {
-    const pName = lang === "es" ? pokemon.name_es : pokemon.name_en;
-    onClose();
-    navigate(`/pokedex?search=${encodeURIComponent(pName)}`);
+  const handleAddToTodo = () => {
+    const todoText = lang === "es"
+      ? `Construir hábitat ${name}`
+      : `Build habitat ${name}`;
+    addTodo(todoText);
+    setAddedToTodo(true);
+    setTimeout(() => setAddedToTodo(false), 1500);
   };
 
   return (
@@ -95,6 +104,16 @@ export function HabitatDetailModal({ habitat, progress, allPokemon, onUpdate, on
         className="bg-white dark:bg-gray-900 rounded-3xl p-6 w-full max-w-md shadow-2xl animate-slide-up overflow-y-auto max-h-[90vh]"
         onClick={(e) => e.stopPropagation()}
       >
+        {/* Back button (when opened from Pokédex) */}
+        {onBack && (
+          <button
+            onClick={onBack}
+            className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400 hover:text-brand-500 mb-3 transition-colors"
+          >
+            ← {t("common.back")}
+          </button>
+        )}
+
         {/* Image */}
         <ModalHabitatImage habitatId={habitat.id} emoji={emoji} />
 
@@ -112,20 +131,31 @@ export function HabitatDetailModal({ habitat, progress, allPokemon, onUpdate, on
           <p className="text-sm text-gray-700 dark:text-gray-300">{requirements}</p>
         </div>
 
-        {/* Built toggle */}
-        <div className="mb-4">
+        {/* Built toggle + Todo button */}
+        <div className="mb-4 flex gap-2">
           <button
             onClick={() => onUpdate({ is_built: !isBuilt })}
-            className={`w-full flex items-center justify-center gap-2 py-2 rounded-xl font-semibold text-sm transition-colors
+            className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-xl font-semibold text-sm transition-colors
               ${isBuilt ? "bg-brand-500 text-white" : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300"}`}
           >
             <Hammer className="w-4 h-4" />
             {isBuilt ? t("habitatdex.markNotBuilt") : t("habitatdex.markBuilt")}
           </button>
+          <button
+            onClick={handleAddToTodo}
+            title={addedToTodo ? t("common.addedToTodo") : t("common.addToTodo")}
+            className={`flex items-center justify-center px-3 py-2 rounded-xl text-sm font-semibold transition-colors
+              ${addedToTodo
+                ? "bg-green-500 text-white"
+                : "bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
+              }`}
+          >
+            <ListTodo className="w-4 h-4" />
+          </button>
         </div>
 
-        {/* Progress bar */}
-        {isBuilt && spawnPokemon.length > 0 && (
+        {/* Progress bar — always shown */}
+        {spawnPokemon.length > 0 && (
           <div className="mb-4">
             <div className="flex justify-between text-xs text-gray-400 mb-1">
               <span>{t("habitatdex.spawns")}</span>
@@ -176,7 +206,7 @@ export function HabitatDetailModal({ habitat, progress, allPokemon, onUpdate, on
                       {isAttracted && <CheckCircle2 className="w-3 h-3 text-accent-teal" />}
                     </button>
                     <button
-                      onClick={() => handlePokemonNavigate(p)}
+                      onClick={() => { onClose(); navigate(`/pokedex?search=${encodeURIComponent(pName)}`); }}
                       className="text-[8px] text-brand-500 hover:underline"
                       title={`${t("common.viewInPokedex")}: ${pName}`}
                     >

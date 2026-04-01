@@ -63,7 +63,12 @@
     "status": "Status",
     "type": "Type",
     "category": "Category",
-    "specialty": "Specialty"
+    "specialty": "Specialty",
+    "addToTodo": "Add to To-Do",
+    "addedToTodo": "Added!",
+    "selectZone": "Select a zone",
+    "skipZone": "Skip",
+    "back": "Back"
   },
   "pokedex": {
     "title": "Pokédex",
@@ -98,6 +103,8 @@
     "filterNotBuilt": "Not built",
     "filterComplete": "Complete",
     "filterCategory": "Category",
+    "filterByItems": "Filter by items",
+    "searchItems": "Search items...",
     "categories": {
       "grass": "Grass",
       "flower": "Flower",

@@ -63,7 +63,12 @@
     "status": "Estado",
     "type": "Tipo",
     "category": "Categoría",
-    "specialty": "Habilidad"
+    "specialty": "Habilidad",
+    "addToTodo": "Añadir a tareas",
+    "addedToTodo": "¡Añadido!",
+    "selectZone": "Seleccionar zona",
+    "skipZone": "Omitir",
+    "back": "Volver"
   },
   "pokedex": {
     "title": "Pokédex",
@@ -98,6 +103,8 @@
     "filterNotBuilt": "No construidos",
     "filterComplete": "Completados",
     "filterCategory": "Categoría",
+    "filterByItems": "Filtrar por objetos",
+    "searchItems": "Buscar objetos...",
     "categories": {
       "grass": "Hierba",
       "flower": "Flores",

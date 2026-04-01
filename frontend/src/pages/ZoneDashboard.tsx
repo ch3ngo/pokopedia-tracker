@@ -421,6 +421,7 @@ export function ZoneDashboard() {
           onClose={() => setSelectedPokemon(null)}
           lang={lang}
           habitats={allHabitats}
+          allPokemon={allPokemon}
         />
       )}
 

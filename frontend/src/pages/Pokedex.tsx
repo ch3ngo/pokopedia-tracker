@@ -1,8 +1,8 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { useSearchParams } from "react-router-dom";
-import { Search } from "lucide-react";
+import { Search, ChevronUp } from "lucide-react";
 import i18n from "../i18n";
 import { getAllPokemon, getAllHabitats } from "../services/api";
 import { useProgressStore } from "../store";
@@ -60,13 +60,20 @@ export function Pokedex() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [allPokemon, search, filter, specialtyFilter, lang, progressMap]);
 
+  const [showScrollTop, setShowScrollTop] = useState(false);
+  useEffect(() => {
+    const handler = () => setShowScrollTop(window.scrollY > 300);
+    window.addEventListener("scroll", handler);
+    return () => window.removeEventListener("scroll", handler);
+  }, []);
+
   const totalPokemon = allPokemon.filter((p) => !p.is_special_npc).length;
   const caughtCount = allPokemon.filter((p) => !p.is_special_npc && getProgress(p.id)?.is_caught).length;
   const specialsCaught = allPokemon.filter(
     (p) => (p.is_legendary || p.is_mythical) && getProgress(p.id)?.is_caught
   ).length;
   const specialsTotal = allPokemon.filter((p) => p.is_legendary || p.is_mythical).length;
-  const zonedCount = allPokemon.filter((p) => getProgress(p.id)?.zone).length;
+  const zonedCount = allPokemon.filter((p) => !p.is_special_npc && getProgress(p.id)?.zone).length;
 
   const filters: { key: Filter; label: string }[] = [
     { key: "all", label: t("pokedex.filterAll") },
@@ -244,16 +251,18 @@ export function Pokedex() {
             </div>
           </div>
 
-          {/* Search */}
-          <div className="relative mb-3">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder={t("common.search")}
-              className="w-full pl-9 pr-4 py-2.5 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-sm text-gray-900 dark:text-white outline-none focus:border-brand-500 transition-colors"
-            />
+          {/* Search — sticky */}
+          <div className="sticky top-0 z-10 bg-gray-50/95 dark:bg-gray-950/95 backdrop-blur-sm pb-2 -mx-1 px-1">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <input
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder={t("common.search")}
+                className="w-full pl-9 pr-4 py-2.5 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-sm text-gray-900 dark:text-white outline-none focus:border-brand-500 transition-colors"
+              />
+            </div>
           </div>
 
           {/* Count */}
@@ -277,12 +286,24 @@ export function Pokedex() {
                   onUpdate={(update) => updatePokemon(p.id, update)}
                   lang={lang}
                   habitats={habitats}
+                  allPokemon={allPokemon}
                 />
               ))}
             </div>
           )}
         </div>
       </div>
+
+      {/* Scroll to top */}
+      {showScrollTop && (
+        <button
+          onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+          className="fixed bottom-6 right-6 z-40 w-10 h-10 rounded-full bg-brand-500 text-white shadow-lg flex items-center justify-center hover:bg-brand-600 transition-colors"
+          aria-label="Scroll to top"
+        >
+          <ChevronUp className="w-5 h-5" />
+        </button>
+      )}
     </div>
   );
 }

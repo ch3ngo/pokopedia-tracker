@@ -12,9 +12,10 @@ interface Props {
   onUpdate: (update: Partial<PokemonProgress>) => void;
   lang: "en" | "es";
   habitats?: Habitat[];
+  allPokemon?: Pokemon[];
 }
 
-export function PokemonCard({ pokemon, progress, onUpdate, lang, habitats }: Props) {
+export function PokemonCard({ pokemon, progress, onUpdate, lang, habitats, allPokemon }: Props) {
   const { t } = useTranslation();
   const [showDetail, setShowDetail] = useState(false);
 
@@ -104,6 +105,7 @@ export function PokemonCard({ pokemon, progress, onUpdate, lang, habitats }: Pro
           onClose={() => setShowDetail(false)}
           lang={lang}
           habitats={habitats}
+          allPokemon={allPokemon}
         />
       )}
     </>

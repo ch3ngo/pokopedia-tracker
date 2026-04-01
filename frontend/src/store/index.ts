@@ -105,6 +105,7 @@ export const useTodoStore = create<TodoStore>()(
 interface ZoneStore {
   comfort: Record<string, number>;
   setComfort: (zone: string, value: number) => void;
+  clear: () => void;
 }
 
 export const useZoneStore = create<ZoneStore>()(
@@ -113,6 +114,7 @@ export const useZoneStore = create<ZoneStore>()(
       comfort: {},
       setComfort: (zone, value) =>
         set((state) => ({ comfort: { ...state.comfort, [zone]: value } })),
+      clear: () => set({ comfort: {} }),
     }),
     { name: "pokopedia-zones" }
   )

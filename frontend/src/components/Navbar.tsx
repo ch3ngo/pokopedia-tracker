@@ -7,7 +7,7 @@ import {
   Home, BookOpen, Tent, Map, ListTodo,
 } from "lucide-react";
 import i18n from "../i18n";
-import { useProgressStore, useUIStore } from "../store";
+import { useProgressStore, useUIStore, useZoneStore } from "../store";
 
 interface Props {
   collapsed: boolean;
@@ -19,6 +19,7 @@ export function Navbar({ collapsed, onToggle }: Props) {
   const location = useLocation();
   const { theme, toggleTheme } = useUIStore();
   const { exportProgress, importProgress, clear } = useProgressStore();
+  const { comfort, setComfort, clear: clearComfort } = useZoneStore();
   const lang = i18n.language as "en" | "es";
   const importRef = useRef<HTMLInputElement>(null);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
@@ -35,7 +36,7 @@ export function Navbar({ collapsed, onToggle }: Props) {
       : "text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white";
 
   const handleExport = () => {
-    const data = exportProgress();
+    const data = { ...exportProgress(), comfort };
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -53,6 +54,11 @@ export function Navbar({ collapsed, onToggle }: Props) {
       try {
         const data = JSON.parse(ev.target?.result as string);
         importProgress(data);
+        if (data.comfort && typeof data.comfort === "object") {
+          Object.entries(data.comfort as Record<string, number>).forEach(([zone, value]) => {
+            setComfort(zone, value);
+          });
+        }
       } catch {
         alert(t("common.importError"));
       }
@@ -63,6 +69,7 @@ export function Navbar({ collapsed, onToggle }: Props) {
 
   const handleReset = () => {
     clear();
+    clearComfort();
     setShowResetConfirm(false);
   };
 

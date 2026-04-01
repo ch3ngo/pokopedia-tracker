@@ -1,8 +1,8 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { useSearchParams } from "react-router-dom";
-import { Search } from "lucide-react";
+import { Search, ChevronUp } from "lucide-react";
 import i18n from "../i18n";
 import { getAllHabitats, getAllPokemon } from "../services/api";
 import { useProgressStore } from "../store";
@@ -21,8 +21,16 @@ export function Habitatdex() {
   const [searchParams] = useSearchParams();
 
   const [search, setSearch] = useState(searchParams.get("search") ?? "");
+  const [itemSearch, setItemSearch] = useState("");
   const [filter, setFilter] = useState<Filter>("all");
   const [category, setCategory] = useState("all");
+  const [showScrollTop, setShowScrollTop] = useState(false);
+
+  useEffect(() => {
+    const handler = () => setShowScrollTop(window.scrollY > 300);
+    window.addEventListener("scroll", handler);
+    return () => window.removeEventListener("scroll", handler);
+  }, []);
 
   const { data: habitats = [] } = useQuery({ queryKey: ["habitats"], queryFn: getAllHabitats });
   const { data: allPokemon = [] } = useQuery({ queryKey: ["pokemon"], queryFn: getAllPokemon });
@@ -43,8 +51,23 @@ export function Habitatdex() {
   const filtered = useMemo(() => {
     return habitats.filter((h) => {
       const name = lang === "es" ? h.name_es : h.name_en;
+      const reqs = lang === "es" ? h.requirements_es : h.requirements_en;
       const progress = getProgress(h.id);
-      if (search && !name.toLowerCase().includes(search.toLowerCase())) return false;
+
+      // Search: match habitat name OR any spawning Pokemon name
+      if (search) {
+        const term = search.toLowerCase();
+        const nameMatch = name.toLowerCase().includes(term);
+        const pokemonMatch = allPokemon.some(
+          (p) => h.pokemon_ids.includes(p.id) &&
+            (lang === "es" ? p.name_es : p.name_en).toLowerCase().includes(term)
+        );
+        if (!nameMatch && !pokemonMatch) return false;
+      }
+
+      // Item filter: match requirements text
+      if (itemSearch && !reqs.toLowerCase().includes(itemSearch.toLowerCase())) return false;
+
       if (category !== "all" && h.category !== category) return false;
       switch (filter) {
         case "built": return progress?.is_built ?? false;
@@ -54,7 +77,7 @@ export function Habitatdex() {
       }
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [habitats, search, filter, category, lang, progressMap, pokemonProgress]);
+  }, [habitats, search, itemSearch, filter, category, lang, progressMap, pokemonProgress, allPokemon]);
 
   const builtCount = habitats.filter((h) => getProgress(h.id)?.is_built).length;
   const completeCount = habitats.filter((h) => isComplete(h.id)).length;
@@ -131,7 +154,7 @@ export function Habitatdex() {
             <p className="text-[9px] font-pixel text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2">
               {t("common.category", "Category")}
             </p>
-            <div className="space-y-0.5 max-h-64 overflow-y-auto pr-1">
+            <div className="space-y-0.5 max-h-52 overflow-y-auto pr-1">
               <button
                 onClick={() => setCategory("all")}
                 className={`w-full text-left px-3 py-1.5 rounded-xl text-sm font-semibold transition-colors
@@ -155,6 +178,23 @@ export function Habitatdex() {
                   {t(`habitatdex.categories.${c}`)}
                 </button>
               ))}
+            </div>
+          </div>
+
+          {/* Item filter */}
+          <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 border border-gray-200 dark:border-gray-700">
+            <p className="text-[9px] font-pixel text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2">
+              {t("habitatdex.filterByItems")}
+            </p>
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3 h-3 text-gray-400" />
+              <input
+                type="text"
+                value={itemSearch}
+                onChange={(e) => setItemSearch(e.target.value)}
+                placeholder={t("habitatdex.searchItems")}
+                className="w-full pl-8 pr-3 py-1.5 rounded-xl bg-gray-100 dark:bg-gray-700 text-sm text-gray-900 dark:text-white outline-none text-xs"
+              />
             </div>
           </div>
         </aside>
@@ -231,18 +271,31 @@ export function Habitatdex() {
                 </button>
               ))}
             </div>
+            {/* Mobile item search */}
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
+              <input
+                type="text"
+                value={itemSearch}
+                onChange={(e) => setItemSearch(e.target.value)}
+                placeholder={t("habitatdex.searchItems")}
+                className="w-full pl-9 pr-4 py-2 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-xs text-gray-900 dark:text-white outline-none"
+              />
+            </div>
           </div>
 
-          {/* Search */}
-          <div className="relative mb-3">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder={t("common.search")}
-              className="w-full pl-9 pr-4 py-2.5 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-sm text-gray-900 dark:text-white outline-none focus:border-brand-500 transition-colors"
-            />
+          {/* Search — sticky */}
+          <div className="sticky top-0 z-10 bg-gray-50/95 dark:bg-gray-950/95 backdrop-blur-sm pb-2 -mx-1 px-1">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <input
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder={t("common.search")}
+                className="w-full pl-9 pr-4 py-2.5 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-sm text-gray-900 dark:text-white outline-none focus:border-brand-500 transition-colors"
+              />
+            </div>
           </div>
 
           {/* Count */}
@@ -257,7 +310,7 @@ export function Habitatdex() {
               <p className="text-sm font-semibold">{t("common.noResults")}</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3 animate-fade-in">
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3 animate-fade-in items-stretch">
               {filtered.map((h) => (
                 <HabitatCard
                   key={h.id}
@@ -272,6 +325,17 @@ export function Habitatdex() {
           )}
         </div>
       </div>
+
+      {/* Scroll to top */}
+      {showScrollTop && (
+        <button
+          onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+          className="fixed bottom-6 right-6 z-40 w-10 h-10 rounded-full bg-brand-500 text-white shadow-lg flex items-center justify-center hover:bg-brand-600 transition-colors"
+          aria-label="Scroll to top"
+        >
+          <ChevronUp className="w-5 h-5" />
+        </button>
+      )}
     </div>
   );
 }

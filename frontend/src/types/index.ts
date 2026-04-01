@@ -48,11 +48,11 @@ export type Zone =
   | "sparkling_skylands";
 
 export const ZONES: Zone[] = [
-  "palette_town",
   "withered_wastelands",
   "bleak_beach",
   "rocky_ridges",
   "sparkling_skylands",
+  "palette_town",
 ];
 
 export const ZONE_LABELS: Record<Zone, { en: string; es: string }> = {
