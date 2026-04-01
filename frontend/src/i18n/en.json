@@ -102,6 +102,7 @@
     "filterBuilt": "Built",
     "filterNotBuilt": "Not built",
     "filterComplete": "Complete",
+    "filterIncomplete": "Not completed",
     "filterCategory": "Category",
     "filterByItems": "Filter by items",
     "searchItems": "Search items...",

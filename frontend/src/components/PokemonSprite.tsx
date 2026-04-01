@@ -16,13 +16,15 @@ const sizes = {
 function normalizeSpriteName(key: string): string {
   return key
     .toLowerCase()
+    .replace(/_/g, "-")
     .replace(/\s+/g, "-")
     .replace(/\./g, "")
     .replace(/'/g, "")
     .replace(/♀/g, "-f")
     .replace(/♂/g, "-m")
     .replace(/:/g, "")
-    .replace(/--+/g, "-");
+    .replace(/-+/g, "-")
+    .replace(/-$/, "");
 }
 
 export function PokemonSprite({ spriteKey, name, size = "md", grayscale = false }: Props) {

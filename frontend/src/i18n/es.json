@@ -102,6 +102,7 @@
     "filterBuilt": "Construidos",
     "filterNotBuilt": "No construidos",
     "filterComplete": "Completados",
+    "filterIncomplete": "No completados",
     "filterCategory": "Categoría",
     "filterByItems": "Filtrar por objetos",
     "searchItems": "Buscar objetos...",

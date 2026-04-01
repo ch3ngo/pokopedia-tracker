@@ -10,7 +10,7 @@ import { HabitatCard } from "../components/HabitatCard";
 import { StatsRing } from "../components/StatsRing";
 import type { HabitatProgress } from "../types";
 
-type Filter = "all" | "built" | "notBuilt" | "complete";
+type Filter = "all" | "built" | "notBuilt" | "complete" | "incomplete";
 
 const CATEGORIES = ["grass","flower","water","rocky","ghost","electric","fire","ice","sky","urban","sport","specialized","legendary"] as const;
 
@@ -21,15 +21,16 @@ export function Habitatdex() {
   const [searchParams] = useSearchParams();
 
   const [search, setSearch] = useState(searchParams.get("search") ?? "");
-  const [itemSearch, setItemSearch] = useState("");
   const [filter, setFilter] = useState<Filter>("all");
   const [category, setCategory] = useState("all");
   const [showScrollTop, setShowScrollTop] = useState(false);
 
   useEffect(() => {
-    const handler = () => setShowScrollTop(window.scrollY > 300);
-    window.addEventListener("scroll", handler);
-    return () => window.removeEventListener("scroll", handler);
+    const main = document.querySelector("main");
+    if (!main) return;
+    const handler = () => setShowScrollTop(main.scrollTop > 300);
+    main.addEventListener("scroll", handler);
+    return () => main.removeEventListener("scroll", handler);
   }, []);
 
   const { data: habitats = [] } = useQuery({ queryKey: ["habitats"], queryFn: getAllHabitats });
@@ -54,30 +55,29 @@ export function Habitatdex() {
       const reqs = lang === "es" ? h.requirements_es : h.requirements_en;
       const progress = getProgress(h.id);
 
-      // Search: match habitat name OR any spawning Pokemon name
+      // Search: match habitat name, requirements, OR any spawning Pokemon name
       if (search) {
         const term = search.toLowerCase();
         const nameMatch = name.toLowerCase().includes(term);
+        const reqsMatch = reqs.toLowerCase().includes(term);
         const pokemonMatch = allPokemon.some(
           (p) => h.pokemon_ids.includes(p.id) &&
             (lang === "es" ? p.name_es : p.name_en).toLowerCase().includes(term)
         );
-        if (!nameMatch && !pokemonMatch) return false;
+        if (!nameMatch && !reqsMatch && !pokemonMatch) return false;
       }
-
-      // Item filter: match requirements text
-      if (itemSearch && !reqs.toLowerCase().includes(itemSearch.toLowerCase())) return false;
 
       if (category !== "all" && h.category !== category) return false;
       switch (filter) {
         case "built": return progress?.is_built ?? false;
         case "notBuilt": return !(progress?.is_built ?? false);
         case "complete": return isComplete(h.id);
+        case "incomplete": return !isComplete(h.id);
         default: return true;
       }
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [habitats, search, itemSearch, filter, category, lang, progressMap, pokemonProgress, allPokemon]);
+  }, [habitats, search, filter, category, lang, progressMap, pokemonProgress, allPokemon]);
 
   const builtCount = habitats.filter((h) => getProgress(h.id)?.is_built).length;
   const completeCount = habitats.filter((h) => isComplete(h.id)).length;
@@ -87,6 +87,7 @@ export function Habitatdex() {
     { key: "built", label: t("habitatdex.filterBuilt") },
     { key: "notBuilt", label: t("habitatdex.filterNotBuilt") },
     { key: "complete", label: t("habitatdex.filterComplete") },
+    { key: "incomplete", label: t("habitatdex.filterIncomplete") },
   ];
 
   return (
@@ -94,7 +95,7 @@ export function Habitatdex() {
       <div className="lg:flex lg:gap-6 lg:items-start">
 
         {/* Desktop sidebar */}
-        <aside className="hidden lg:flex lg:flex-col gap-4 w-60 shrink-0 sticky top-20 self-start max-h-[calc(100vh-5.5rem)] overflow-y-auto pr-1">
+        <aside className="hidden lg:flex lg:flex-col gap-4 w-60 shrink-0 sticky top-6 self-start max-h-[calc(100vh-5.5rem)] overflow-y-auto pr-1">
           <div>
             <h1 className="font-pixel text-[12px] text-gray-900 dark:text-white mb-1">{t("habitatdex.title")}</h1>
             <p className="text-gray-500 dark:text-gray-400 text-xs">{t("habitatdex.subtitle")}</p>
@@ -181,22 +182,6 @@ export function Habitatdex() {
             </div>
           </div>
 
-          {/* Item filter */}
-          <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 border border-gray-200 dark:border-gray-700">
-            <p className="text-[9px] font-pixel text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2">
-              {t("habitatdex.filterByItems")}
-            </p>
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3 h-3 text-gray-400" />
-              <input
-                type="text"
-                value={itemSearch}
-                onChange={(e) => setItemSearch(e.target.value)}
-                placeholder={t("habitatdex.searchItems")}
-                className="w-full pl-8 pr-3 py-1.5 rounded-xl bg-gray-100 dark:bg-gray-700 text-sm text-gray-900 dark:text-white outline-none text-xs"
-              />
-            </div>
-          </div>
         </aside>
 
         {/* Main content */}
@@ -271,21 +256,10 @@ export function Habitatdex() {
                 </button>
               ))}
             </div>
-            {/* Mobile item search */}
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
-              <input
-                type="text"
-                value={itemSearch}
-                onChange={(e) => setItemSearch(e.target.value)}
-                placeholder={t("habitatdex.searchItems")}
-                className="w-full pl-9 pr-4 py-2 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-xs text-gray-900 dark:text-white outline-none"
-              />
-            </div>
           </div>
 
           {/* Search — sticky */}
-          <div className="sticky top-0 z-10 bg-gray-50/95 dark:bg-gray-950/95 backdrop-blur-sm pb-2 -mx-1 px-1">
+          <div className="sticky top-3 z-20 bg-gray-50 dark:bg-gray-950 pt-1 pb-2 -mx-1 px-1">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
               <input
@@ -319,6 +293,7 @@ export function Habitatdex() {
                   allPokemon={allPokemon}
                   onUpdate={(update) => updateHabitat(h.id, update)}
                   lang={lang}
+                  allHabitats={habitats}
                 />
               ))}
             </div>
@@ -329,7 +304,7 @@ export function Habitatdex() {
       {/* Scroll to top */}
       {showScrollTop && (
         <button
-          onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+          onClick={() => document.querySelector("main")?.scrollTo({ top: 0, behavior: "smooth" })}
           className="fixed bottom-6 right-6 z-40 w-10 h-10 rounded-full bg-brand-500 text-white shadow-lg flex items-center justify-center hover:bg-brand-600 transition-colors"
           aria-label="Scroll to top"
         >

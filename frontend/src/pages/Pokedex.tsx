@@ -48,6 +48,9 @@ export function Pokedex() {
       if (search && !name.toLowerCase().includes(search.toLowerCase())) return false;
       if (specialtyFilter !== "all" && !p.specialties.includes(specialtyFilter)) return false;
 
+      // NPCs are only visible when the NPC filter is explicitly selected
+      if (p.is_special_npc && filter !== "npc") return false;
+
       switch (filter) {
         case "caught": return progress?.is_caught ?? false;
         case "uncaught": return !(progress?.is_caught ?? false);
@@ -62,9 +65,11 @@ export function Pokedex() {
 
   const [showScrollTop, setShowScrollTop] = useState(false);
   useEffect(() => {
-    const handler = () => setShowScrollTop(window.scrollY > 300);
-    window.addEventListener("scroll", handler);
-    return () => window.removeEventListener("scroll", handler);
+    const main = document.querySelector("main");
+    if (!main) return;
+    const handler = () => setShowScrollTop(main.scrollTop > 300);
+    main.addEventListener("scroll", handler);
+    return () => main.removeEventListener("scroll", handler);
   }, []);
 
   const totalPokemon = allPokemon.filter((p) => !p.is_special_npc).length;
@@ -89,7 +94,7 @@ export function Pokedex() {
       <div className="lg:flex lg:gap-6 lg:items-start">
 
         {/* Desktop sidebar */}
-        <aside className="hidden lg:flex lg:flex-col gap-4 w-60 shrink-0 sticky top-20 self-start max-h-[calc(100vh-5.5rem)] overflow-y-auto pr-1">
+        <aside className="hidden lg:flex lg:flex-col gap-4 w-60 shrink-0 sticky top-6 self-start max-h-[calc(100vh-5.5rem)] overflow-y-auto pr-1">
           <div>
             <h1 className="font-pixel text-[12px] text-gray-900 dark:text-white mb-1">{t("pokedex.title")}</h1>
             <p className="text-gray-500 dark:text-gray-400 text-xs">{t("pokedex.subtitle")}</p>
@@ -252,7 +257,7 @@ export function Pokedex() {
           </div>
 
           {/* Search — sticky */}
-          <div className="sticky top-0 z-10 bg-gray-50/95 dark:bg-gray-950/95 backdrop-blur-sm pb-2 -mx-1 px-1">
+          <div className="sticky top-3 z-20 bg-gray-50 dark:bg-gray-950 pt-1 pb-2 -mx-1 px-1">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
               <input
@@ -297,7 +302,7 @@ export function Pokedex() {
       {/* Scroll to top */}
       {showScrollTop && (
         <button
-          onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+          onClick={() => document.querySelector("main")?.scrollTo({ top: 0, behavior: "smooth" })}
           className="fixed bottom-6 right-6 z-40 w-10 h-10 rounded-full bg-brand-500 text-white shadow-lg flex items-center justify-center hover:bg-brand-600 transition-colors"
           aria-label="Scroll to top"
         >

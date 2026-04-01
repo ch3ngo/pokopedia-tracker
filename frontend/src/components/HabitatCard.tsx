@@ -11,6 +11,7 @@ interface Props {
   allPokemon: Pokemon[];
   onUpdate: (update: Partial<HabitatProgress>) => void;
   lang: "en" | "es";
+  allHabitats?: Habitat[];
 }
 
 const CATEGORY_EMOJI: Record<string, string> = {
@@ -51,7 +52,7 @@ function HabitatImage({ habitatId, emoji }: { habitatId: number; emoji: string }
   );
 }
 
-export function HabitatCard({ habitat, progress, allPokemon, onUpdate, lang }: Props) {
+export function HabitatCard({ habitat, progress, allPokemon, onUpdate, lang, allHabitats }: Props) {
   const { t } = useTranslation();
   const [modalOpen, setModalOpen] = useState(false);
   const [addedToTodo, setAddedToTodo] = useState(false);
@@ -95,7 +96,7 @@ export function HabitatCard({ habitat, progress, allPokemon, onUpdate, lang }: P
               : "border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
           }`}
       >
-        <div className="p-4 flex gap-4 items-start flex-1">
+        <div className="p-4 flex gap-4 items-stretch flex-1">
           {/* Habitat image */}
           <HabitatImage habitatId={habitat.id} emoji={emoji} />
 
@@ -113,44 +114,44 @@ export function HabitatCard({ habitat, progress, allPokemon, onUpdate, lang }: P
 
             <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2">{requirements}</p>
 
-            {/* Progress bar — always shown */}
-            {spawnPokemon.length > 0 && (
-              <div>
-                <div className="flex justify-between text-xs text-gray-400 mb-1">
-                  <span>{t("habitatdex.spawns")}</span>
-                  <span>{effectiveAttracted.length}/{spawnPokemon.length}</span>
+            {/* Progress bar + Actions — always at bottom */}
+            <div className="mt-auto flex flex-col gap-2">
+              {spawnPokemon.length > 0 && (
+                <div>
+                  <div className="flex justify-end text-xs text-gray-400 mb-1">
+                    <span>{effectiveAttracted.length}/{spawnPokemon.length}</span>
+                  </div>
+                  <div className="h-1.5 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden">
+                    <div
+                      className="h-full rounded-full bg-accent-teal transition-all duration-300"
+                      style={{ width: `${completionPct}%` }}
+                    />
+                  </div>
                 </div>
-                <div className="h-1.5 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden">
-                  <div
-                    className="h-full rounded-full bg-accent-teal transition-all duration-300"
-                    style={{ width: `${completionPct}%` }}
-                  />
-                </div>
+              )}
+
+              <div className="flex gap-1.5">
+                <button
+                  onClick={(e) => { e.stopPropagation(); onUpdate({ is_built: !isBuilt }); }}
+                  className={`flex-1 h-8 flex items-center justify-center gap-1.5 px-2 rounded-xl text-[11px] font-semibold transition-colors
+                    ${isBuilt ? "bg-brand-500 text-white" : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300"}`}
+                >
+                  <Hammer className="w-3 h-3 shrink-0" />
+                  <span className="truncate">{isBuilt ? t("habitatdex.markNotBuilt") : t("habitatdex.markBuilt")}</span>
+                </button>
+
+                <button
+                  onClick={handleAddToTodo}
+                  title={addedToTodo ? t("common.addedToTodo") : t("common.addToTodo")}
+                  className={`flex items-center justify-center w-8 h-8 rounded-xl text-xs font-semibold transition-colors shrink-0
+                    ${addedToTodo
+                      ? "bg-green-500 text-white"
+                      : "bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600"
+                    }`}
+                >
+                  <ListTodo className="w-3.5 h-3.5" />
+                </button>
               </div>
-            )}
-
-            {/* Actions */}
-            <div className="flex gap-1.5 mt-auto">
-              <button
-                onClick={(e) => { e.stopPropagation(); onUpdate({ is_built: !isBuilt }); }}
-                className={`flex-1 flex items-center justify-center gap-1 py-1.5 rounded-xl text-xs font-semibold transition-colors
-                  ${isBuilt ? "bg-brand-500 text-white" : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300"}`}
-              >
-                <Hammer className="w-3 h-3" />
-                {isBuilt ? t("habitatdex.markNotBuilt") : t("habitatdex.markBuilt")}
-              </button>
-
-              <button
-                onClick={handleAddToTodo}
-                title={addedToTodo ? t("common.addedToTodo") : t("common.addToTodo")}
-                className={`flex items-center justify-center w-8 h-7 rounded-xl text-xs font-semibold transition-colors shrink-0
-                  ${addedToTodo
-                    ? "bg-green-500 text-white"
-                    : "bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600"
-                  }`}
-              >
-                <ListTodo className="w-3.5 h-3.5" />
-              </button>
             </div>
           </div>
         </div>
@@ -164,6 +165,7 @@ export function HabitatCard({ habitat, progress, allPokemon, onUpdate, lang }: P
           onUpdate={onUpdate}
           onClose={() => setModalOpen(false)}
           lang={lang}
+          allHabitats={allHabitats}
         />
       )}
     </>

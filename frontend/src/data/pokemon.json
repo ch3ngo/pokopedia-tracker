@@ -682,23 +682,6 @@
     "sprite_key": "Tangela"
   },
   {
-    "id": 41,
-    "name_en": "Tangrowth",
-    "name_es": "Tangrowth",
-    "types": [
-      "Grass"
-    ],
-    "specialties": [
-      "Grow",
-      "Litter"
-    ],
-    "generation": 4,
-    "is_legendary": false,
-    "is_mythical": false,
-    "is_special_npc": true,
-    "sprite_key": "Tangrowth"
-  },
-  {
     "id": 42,
     "name_en": "Scyther",
     "name_es": "Scyther",
@@ -779,24 +762,6 @@
     "is_mythical": false,
     "is_special_npc": false,
     "sprite_key": "Gyarados"
-  },
-  {
-    "id": 47,
-    "name_en": "Ditto",
-    "name_es": "Ditto",
-    "types": [
-      "Normal"
-    ],
-    "specialties": [
-      "Transform",
-      "Trade",
-      "Hype"
-    ],
-    "generation": 1,
-    "is_legendary": false,
-    "is_mythical": false,
-    "is_special_npc": true,
-    "sprite_key": "Ditto"
   },
   {
     "id": 48,
@@ -2001,20 +1966,6 @@
     "sprite_key": "Clodsire"
   },
   {
-    "id": 119,
-    "name_en": "Smeargle",
-    "name_es": "Smeargle",
-    "types": [
-      "Normal"
-    ],
-    "specialties": [],
-    "generation": 2,
-    "is_legendary": false,
-    "is_mythical": false,
-    "is_special_npc": true,
-    "sprite_key": "Smeargle"
-  },
-  {
     "id": 120,
     "name_en": "Torchic",
     "name_es": "Torchic",
@@ -3064,21 +3015,6 @@
     "sprite_key": "Lucario"
   },
   {
-    "id": 182,
-    "name_en": "Rotom",
-    "name_es": "Rotom",
-    "types": [
-      "Electric",
-      "Normal"
-    ],
-    "specialties": [],
-    "generation": 4,
-    "is_legendary": false,
-    "is_mythical": false,
-    "is_special_npc": true,
-    "sprite_key": "Rotom"
-  },
-  {
     "id": 183,
     "name_en": "Larvesta",
     "name_es": "Larvesta",
@@ -3233,20 +3169,6 @@
     "is_mythical": false,
     "is_special_npc": false,
     "sprite_key": "Skwovet"
-  },
-  {
-    "id": 192,
-    "name_en": "Greedent",
-    "name_es": "Greedent",
-    "types": [
-      "Normal"
-    ],
-    "specialties": [],
-    "generation": 8,
-    "is_legendary": false,
-    "is_mythical": false,
-    "is_special_npc": true,
-    "sprite_key": "Greedent"
   },
   {
     "id": 193,

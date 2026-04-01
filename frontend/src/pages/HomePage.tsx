@@ -31,7 +31,7 @@ export function HomePage() {
   const navigate = useNavigate();
 
   const { pokemon: progressMap, habitats: habitatProgress } = useProgressStore();
-  const { todos } = useTodoStore();
+  const { todos, toggleTodo } = useTodoStore();
   const { done, toggle, resetIfNewDay } = useDailyStore();
 
   useEffect(() => { resetIfNewDay(); }, [resetIfNewDay]);
@@ -224,9 +224,14 @@ export function HomePage() {
           ) : (
             <ul className="divide-y divide-gray-100 dark:divide-gray-700">
               {pendingTodos.map((task) => (
-                <li key={task.id} className="flex items-center gap-2 py-2.5">
-                  <Circle className="w-4 h-4 text-gray-300 dark:text-gray-600 shrink-0" />
-                  <span className="text-sm text-gray-700 dark:text-gray-300 line-clamp-1">{task.text}</span>
+                <li key={task.id}>
+                  <button
+                    onClick={() => toggleTodo(task.id)}
+                    className="w-full flex items-center gap-2 py-2.5 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors text-left"
+                  >
+                    <Circle className="w-4 h-4 text-gray-300 dark:text-gray-600 shrink-0 hover:text-accent-teal transition-colors" />
+                    <span className="text-sm text-gray-700 dark:text-gray-300 line-clamp-1">{task.text}</span>
+                  </button>
                 </li>
               ))}
             </ul>

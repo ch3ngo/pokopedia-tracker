@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useNavigate } from "react-router-dom";
 import { Hammer, CheckCircle2, ListTodo } from "lucide-react";
 import type { Habitat, HabitatProgress, Pokemon } from "../types";
+import { ZONES, ZONE_LABELS } from "../types";
 import { useProgressStore, useTodoStore } from "../store";
 import { PokemonSprite } from "./PokemonSprite";
+import { PokemonDetailModal } from "./PokemonDetailModal";
 
 const CATEGORY_EMOJI: Record<string, string> = {
   grass: "🌿",
@@ -52,14 +53,16 @@ interface Props {
   onClose: () => void;
   lang: "en" | "es";
   onBack?: () => void;
+  allHabitats?: Habitat[];
 }
 
-export function HabitatDetailModal({ habitat, progress, allPokemon, onUpdate, onClose, lang, onBack }: Props) {
+export function HabitatDetailModal({ habitat, progress, allPokemon, onUpdate, onClose, lang, onBack, allHabitats }: Props) {
   const { t } = useTranslation();
-  const navigate = useNavigate();
   const { pokemon: pokemonProgress, updatePokemon } = useProgressStore();
   const { addTodo } = useTodoStore();
   const [addedToTodo, setAddedToTodo] = useState(false);
+  const [zonePendingId, setZonePendingId] = useState<number | null>(null);
+  const [selectedPokemon, setSelectedPokemon] = useState<Pokemon | null>(null);
 
   const isBuilt = progress?.is_built ?? false;
   const attracted = progress?.pokemon_attracted ?? [];
@@ -79,10 +82,15 @@ export function HabitatDetailModal({ habitat, progress, allPokemon, onUpdate, on
     const current = progress?.pokemon_attracted ?? [];
     if (current.includes(pokemonId)) {
       onUpdate({ pokemon_attracted: current.filter((id) => id !== pokemonId) });
+      if (zonePendingId === pokemonId) setZonePendingId(null);
     } else {
       onUpdate({ pokemon_attracted: [...current, pokemonId] });
       // Sync to Pokédex: mark as caught
       updatePokemon(pokemonId, { is_caught: true });
+      // Show zone picker if no zone assigned yet
+      if (!pokemonProgress[pokemonId]?.zone) {
+        setZonePendingId(pokemonId);
+      }
     }
   };
 
@@ -94,6 +102,21 @@ export function HabitatDetailModal({ habitat, progress, allPokemon, onUpdate, on
     setAddedToTodo(true);
     setTimeout(() => setAddedToTodo(false), 1500);
   };
+
+  if (selectedPokemon) {
+    return (
+      <PokemonDetailModal
+        pokemon={selectedPokemon}
+        progress={pokemonProgress[selectedPokemon.id]}
+        onUpdate={(update) => updatePokemon(selectedPokemon.id, update)}
+        onClose={onClose}
+        lang={lang}
+        habitats={allHabitats}
+        allPokemon={allPokemon}
+        onBack={() => setSelectedPokemon(null)}
+      />
+    );
+  }
 
   return (
     <div
@@ -157,8 +180,7 @@ export function HabitatDetailModal({ habitat, progress, allPokemon, onUpdate, on
         {/* Progress bar — always shown */}
         {spawnPokemon.length > 0 && (
           <div className="mb-4">
-            <div className="flex justify-between text-xs text-gray-400 mb-1">
-              <span>{t("habitatdex.spawns")}</span>
+            <div className="flex justify-end text-xs text-gray-400 mb-1">
               <span>{effectiveAttracted.length}/{spawnPokemon.length}</span>
             </div>
             <div className="h-1.5 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden">
@@ -173,7 +195,6 @@ export function HabitatDetailModal({ habitat, progress, allPokemon, onUpdate, on
         {/* Pokemon grid */}
         {spawnPokemon.length > 0 && (
           <div className="mb-4">
-            <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">{t("habitatdex.spawns")}</p>
             <div className="grid grid-cols-4 gap-2">
               {spawnPokemon.map((p) => {
                 const isAttracted =
@@ -206,7 +227,7 @@ export function HabitatDetailModal({ habitat, progress, allPokemon, onUpdate, on
                       {isAttracted && <CheckCircle2 className="w-3 h-3 text-accent-teal" />}
                     </button>
                     <button
-                      onClick={() => { onClose(); navigate(`/pokedex?search=${encodeURIComponent(pName)}`); }}
+                      onClick={() => setSelectedPokemon(p)}
                       className="text-[8px] text-brand-500 hover:underline"
                       title={`${t("common.viewInPokedex")}: ${pName}`}
                     >
@@ -216,6 +237,30 @@ export function HabitatDetailModal({ habitat, progress, allPokemon, onUpdate, on
                 );
               })}
             </div>
+          </div>
+        )}
+
+        {/* Zone picker — shown after marking a new Pokemon as attracted */}
+        {zonePendingId !== null && (
+          <div className="mb-4 p-3 rounded-xl bg-gray-50 dark:bg-gray-800/80 border border-gray-200 dark:border-gray-700">
+            <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-2">{t("common.selectZone")}</p>
+            <div className="grid grid-cols-2 gap-1.5 mb-2">
+              {ZONES.map((z) => (
+                <button
+                  key={z}
+                  onClick={() => { updatePokemon(zonePendingId, { zone: z }); setZonePendingId(null); }}
+                  className="px-2 py-1.5 rounded-lg text-xs font-semibold bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:border-brand-500 hover:text-brand-500 transition-colors text-left truncate"
+                >
+                  {ZONE_LABELS[z][lang]}
+                </button>
+              ))}
+            </div>
+            <button
+              onClick={() => setZonePendingId(null)}
+              className="w-full py-1.5 rounded-lg text-xs font-semibold text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+            >
+              {t("common.skipZone")}
+            </button>
           </div>
         )}
 

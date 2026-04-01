@@ -16,12 +16,12 @@ interface Props {
   lang: "en" | "es";
   habitats?: Habitat[];
   allPokemon?: Pokemon[];
+  onBack?: () => void;
 }
 
-export function PokemonDetailModal({ pokemon, progress, onUpdate, onClose, lang, habitats, allPokemon }: Props) {
+export function PokemonDetailModal({ pokemon, progress, onUpdate, onClose, lang, habitats, allPokemon, onBack }: Props) {
   const { t } = useTranslation();
   const [notes, setNotes] = useState(progress?.notes ?? "");
-  const [showZoneSelect, setShowZoneSelect] = useState(false);
   const [selectedHabitat, setSelectedHabitat] = useState<Habitat | null>(null);
   const { habitats: habitatProgressMap, updateHabitat } = useProgressStore();
 
@@ -29,23 +29,6 @@ export function PokemonDetailModal({ pokemon, progress, onUpdate, onClose, lang,
   const name = lang === "es" ? pokemon.name_es : pokemon.name_en;
   const isSpecial = pokemon.is_legendary || pokemon.is_mythical || pokemon.is_special_npc;
   const pokemonHabitats = habitats?.filter((h) => h.pokemon_ids.includes(pokemon.id)) ?? [];
-
-  const handleCaughtToggle = () => {
-    if (isCaught) {
-      onUpdate({ is_caught: false });
-      setShowZoneSelect(false);
-    } else {
-      onUpdate({ is_caught: true });
-      setShowZoneSelect(true);
-    }
-  };
-
-  const handleZoneSelect = (zone: string | null) => {
-    if (zone) {
-      onUpdate({ zone });
-    }
-    setShowZoneSelect(false);
-  };
 
   if (selectedHabitat) {
     return (
@@ -57,6 +40,7 @@ export function PokemonDetailModal({ pokemon, progress, onUpdate, onClose, lang,
         onClose={onClose}
         lang={lang}
         onBack={() => setSelectedHabitat(null)}
+        allHabitats={habitats}
       />
     );
   }
@@ -70,6 +54,15 @@ export function PokemonDetailModal({ pokemon, progress, onUpdate, onClose, lang,
         className="bg-white dark:bg-gray-900 rounded-3xl p-6 w-full max-w-sm shadow-2xl animate-slide-up overflow-y-auto max-h-[90vh]"
         onClick={(e) => e.stopPropagation()}
       >
+        {onBack && (
+          <button
+            onClick={onBack}
+            className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400 hover:text-brand-500 mb-3 transition-colors"
+          >
+            ← {t("common.back")}
+          </button>
+        )}
+
         <div className="flex flex-col items-center gap-3 mb-6">
           <PokemonSprite spriteKey={pokemon.sprite_key} name={name} size="lg" />
           <h2 className="font-bold text-xl text-gray-900 dark:text-white">{name}</h2>
@@ -94,7 +87,7 @@ export function PokemonDetailModal({ pokemon, progress, onUpdate, onClose, lang,
           </div>
         )}
 
-        {/* Habitats — open inline modal instead of navigating */}
+        {/* Habitats */}
         {pokemonHabitats.length > 0 && (
           <div className="mb-4">
             <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">{t("common.habitats")}</p>
@@ -116,38 +109,14 @@ export function PokemonDetailModal({ pokemon, progress, onUpdate, onClose, lang,
         )}
 
         {/* Caught toggle */}
-        <div className="mb-2">
+        <div className="mb-4">
           <button
-            onClick={handleCaughtToggle}
+            onClick={() => onUpdate({ is_caught: !isCaught })}
             className={`w-full py-2 rounded-xl font-semibold text-sm transition-colors ${isCaught ? "bg-brand-500 text-white" : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300"}`}
           >
             <CheckCircle2 className="w-4 h-4 inline mr-1" />{t("common.caught")}
           </button>
         </div>
-
-        {/* Zone selection popup (shown when just marked as caught) */}
-        {showZoneSelect && (
-          <div className="mb-4 p-3 rounded-xl bg-gray-50 dark:bg-gray-800/80 border border-gray-200 dark:border-gray-700">
-            <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-2">{t("common.selectZone")}</p>
-            <div className="grid grid-cols-2 gap-1.5 mb-2">
-              {ZONES.map((z) => (
-                <button
-                  key={z}
-                  onClick={() => handleZoneSelect(z)}
-                  className="px-2 py-1.5 rounded-lg text-xs font-semibold bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:border-brand-500 hover:text-brand-500 transition-colors text-left truncate"
-                >
-                  {ZONE_LABELS[z][lang]}
-                </button>
-              ))}
-            </div>
-            <button
-              onClick={() => handleZoneSelect(null)}
-              className="w-full py-1.5 rounded-lg text-xs font-semibold text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
-            >
-              {t("common.skipZone")}
-            </button>
-          </div>
-        )}
 
         {/* Zone selector */}
         <div className="mb-4">
