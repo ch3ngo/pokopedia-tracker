@@ -1,18 +1,15 @@
-import axios from "axios";
 import type { Pokemon, Habitat } from "../types";
-
-const api = axios.create({ baseURL: "/api" });
+import pokemonData from "../data/pokemon.json";
+import habitatsData from "../data/habitats.json";
 
 // ── Pokémon ───────────────────────────────────────────────────────────────────
 export async function getAllPokemon(): Promise<Pokemon[]> {
-  const { data } = await api.get<Pokemon[]>("/pokemon");
-  return data;
+  return pokemonData as Pokemon[];
 }
 
 // ── Habitats ──────────────────────────────────────────────────────────────────
 export async function getAllHabitats(): Promise<Habitat[]> {
-  const { data } = await api.get<Habitat[]>("/habitats");
-  return data;
+  return habitatsData as Habitat[];
 }
 
 // ── Sprite URL ─────────────────────────────────────────────────────────────────
